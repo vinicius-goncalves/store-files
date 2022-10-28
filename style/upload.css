@@ -10,7 +10,7 @@
     --color5: #0D0D0D;
     --color6: #3b36cf;
 
-    --upload-file-height: 10%;
+    --reading-file-height: 10%;
 
     font-size: 17px;
 }
@@ -20,7 +20,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-footer {
+header {
     position: absolute;
     left: 50%;
     transform: translate(-50%);
@@ -28,7 +28,7 @@ footer {
     text-align: center;
 }
 
-footer h1 {
+header h1 {
     color: white;
     font-size: 3rem;
     margin-bottom: 10px;
@@ -88,7 +88,7 @@ main .drop-zone-file:hover, .enter-drag-file-zone {
 }
 
 main .file-icon, 
-main .upload-progress {
+main .reading-progress {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -105,21 +105,21 @@ main .upload-progress {
     transform: translateY(-15px);
 }
 
-main .upload-progress {
+main .reading-progress {
     color: var(--color4);
     z-index: 1;
 }
 
-main .uploading-item {
+main .reading-item {
     position: relative;
     overflow: hidden;
 }
 
-main .uploading-item::before {
+main .reading-item::before {
     content: "";
     position: absolute;
     width: 100%;
-    height: var(--upload-file-height);
+    height: var(--reading-file-height);
     background-color: var(--color6);
     bottom: 0;
     z-index: -1;

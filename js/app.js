@@ -21,6 +21,8 @@ function dropTempData() {
 (() => {
 
     const dropFileZone = document.querySelector('.drop-zone-file')
+    const docEl = document.documentElement
+    
     const uuidObj = dropTempData()
 
     const events = ['dragover', 'drop']
@@ -66,14 +68,14 @@ function dropTempData() {
             const fileReader = new FileReader()
 
             fileReader.addEventListener('progress', (event) => {
+
                 const percentange = Math.floor((event.loaded / event.total) * 100)
-                document.documentElement.style.setProperty('--upload-file-height', `${percentange}%`)
+                docEl.style.setProperty('--reading-file-height', `${percentange}%`)
 
                 const uploadProgress = document.querySelector('.progress-percentage')
                 const textContentNode = document.createTextNode(`${percentange}%`)
 
                 uploadProgress.childNodes[0].remove()
-
                 uploadProgress.append(textContentNode)
 
             })
@@ -82,15 +84,13 @@ function dropTempData() {
                 console.log(event.target.result)
             })
 
-            console.log(fileReader.readyState)
             if(fileReader.readyState === 0) {
-                dropFileZone.classList.add('uploading-item')
+                dropFileZone.classList.add('reading-item')
                 dropFileZone.querySelector('.file-icon').style.display = 'none'
-                document.querySelector('.upload-progress').removeAttribute('style')
+                document.querySelector('.reading-progress').removeAttribute('style')
             }
 
             fileReader.readAsArrayBuffer(file)
-
         }
     })
 
