@@ -1,0 +1,127 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --color0: #5852F2;
+    --color1: #6F6BF2;
+    --color2: #AAA7F2;
+    --color3: #EBEDF2;
+
+    --color4: #FFFFFF;
+    --color5: #0D0D0D;
+    --color6: #3b36cf;
+
+    --upload-file-height: 10%;
+
+    font-size: 17px;
+}
+
+body {
+    background-color: var(--color0);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+footer {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+    top: 5%;
+    text-align: center;
+}
+
+footer h1 {
+    color: white;
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+nav a {
+    font-size: 1.5rem;
+    color: var(--color2);
+    text-decoration: none;
+    margin: 0px 10px;
+    transition: color 200ms;
+}
+
+nav a:hover {
+    color: var(--color1);
+}
+
+nav .current-page {
+    background-color: var(--color1);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+nav .current-page:hover {
+    color: white;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 10px;
+}
+
+main .drop-zone-file {
+    width: 500px;
+    height: 500px;
+    border: 5px dashed var(--color1);
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 200ms;
+}
+
+main .drop-zone-file:hover, .enter-drag-file-zone {
+    background-color: var(--color1);
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+main .file-icon, 
+main .upload-progress {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100%;
+}
+
+.file-icon i {
+    font-size: 3.5rem;
+    color: var(--color4);
+    transition: transform 200ms;
+}
+
+.file-icon i:hover, .enter-drag-file-zone i {
+    transform: translateY(-15px);
+}
+
+main .upload-progress {
+    color: var(--color4);
+    z-index: 1;
+}
+
+main .uploading-item {
+    position: relative;
+    overflow: hidden;
+}
+
+main .uploading-item::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: var(--upload-file-height);
+    background-color: var(--color6);
+    bottom: 0;
+    z-index: -1;
+
+}
