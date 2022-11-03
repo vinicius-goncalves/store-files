@@ -1,4 +1,5 @@
-import { randomUUID } from './utils.js';
+import { randomUUID, getSize, CustomFile } from './utils.js'
+import { getItem, putItem } from './indexedDBUtils.js'
 
 const dropFileZone = document.querySelector('.drop-zone-file')
 const docEl = document.documentElement
@@ -37,6 +38,8 @@ function handleWithFile(event, callback) {
         
         const obj = {}
         obj.type = file.type
+        obj.name = file.name
+        obj.lastModified = file.lastModified
 
         fileReader.addEventListener('progress', (event) => {
 
@@ -64,8 +67,10 @@ function handleWithFile(event, callback) {
         })
 
         fileReader.addEventListener('load', (event) => {
+            
             obj.result = event.target.result
             callback(obj)
+
         })
 
         if(fileReader.readyState === 0) {
@@ -75,6 +80,7 @@ function handleWithFile(event, callback) {
         }
 
         fileReader.readAsArrayBuffer(file)
+        
     }
 }
 
@@ -94,8 +100,21 @@ dropFileZone.addEventListener('click', (event) => {
     element.click()
 
     element.addEventListener('change', (event) => {
-        handleWithFile(event, obj => {
-            console.log(obj)
+        handleWithFile(event, fileObjResult => {
+            
+            const { type, name, ['result']: arrBuffer } = fileObjResult
+
+            const uuid = randomUUID()
+            
+            const file = new CustomFile(
+                    uuid, 
+                    name, 
+                    type, 
+                    arrBuffer.byteLength, 
+                    arrBuffer)
+
+            putItem(file)
+
         })
     })
 })
@@ -125,7 +144,8 @@ dropFileZone.addEventListener('drop', (event) => {
 
     event.preventDefault()
     handleWithFile(event, fileObjResult => {
-        console.log(fileObjResult)
-    })
 
+        console.log(fileObjResult)
+        
+    })
 })
