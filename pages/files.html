@@ -3,6 +3,7 @@
     <head>
         <title>My Files</title>
         <link href="/style/read.css" rel="stylesheet">
+        <link href="/style/files.css" rel="stylesheet alternative">
         <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     </head>
     <body>
@@ -14,9 +15,25 @@
             </nav>
         </header>
         <main>
-            <div>
-
-            </div>
+            <ul class="files-wrapper">
+                <li class="file">
+                    <img src="../img.jpg" class="file-img">
+                    <div class="file-details">
+                        <h1 class="file-name">File name</h1>
+                        <p class="file-desc">Size: <span class="file-size">?</span></p>
+                        <p class="file-desc">Type: <span class="file-type">?</span></p>
+                        <button class="options">
+                            <span>Options</span>
+                            <i class="material-icons">expand_more</i>
+                        </button>
+                        <div class="dropdown-options" style="display: none;">
+                            <a href="#">Download</a>
+                            <a href="#">View <span class="view-file-type">(.png)</span></a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </main>
+        <script src="../js/files.js" type="module"></script>
     </body>
 </html>

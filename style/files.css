@@ -1,0 +1,131 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    font-size: 17px;
+}
+
+body {
+    overflow: hidden;
+}
+
+main .files-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 99vh;
+}
+
+.files-wrapper .file {
+    display: flex;
+    justify-content: flex-start;
+    border: 1px solid var(--color2);
+    border-radius: 10px;
+    transition: background-color 200ms;
+}
+
+.files-wrapper .file:hover {
+    background-color: var(--color1);
+}
+
+.file:hover .options {
+    background-color: #4744e4;
+}
+
+.file-img {
+    width: 33.33%;
+    margin: 10px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.file-details {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.file-details .file-name {
+    color: var(--color3);
+}
+
+.file-details .file-desc {
+    color: var(--color2);
+    font-size: 1.3rem;
+}
+
+.file-desc span {
+    color: white;
+}
+
+.options {
+    color: white;
+    background-color: var(--color5);
+    border: none;
+    font-size: 1.5rem;
+    border-radius: 5px;
+    width: 50%;
+    padding: 5px 0px;
+    margin: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.options:hover {
+    background-color: var(--color0) !important;
+}
+
+.dropdown-options {
+    background-color: var(--color3);
+    position: absolute;
+    width: 250px;
+    border-radius: 10px;
+    opacity: .9;
+    padding: 10px;
+}
+
+.dropdown-options a {
+    display: block;
+    font-size: 1.5rem;
+    text-decoration: none;
+    font-weight: bold;
+    color: var(--color3);
+    text-align: center;
+    background-color: var(--color0);
+    border-radius: 10px;
+    margin: 5px;
+}
+
+.dropdown-options a:hover {
+    color: var(--color2)
+}
+
+.dropdown-options .view-file-type {
+    font-size: 1rem;
+}
+
+@media screen and (max-width: 600px) {
+
+    .file h1 {
+        font-size: 1.5rem;
+    }
+
+    .file p, .file span {
+        font-size: 1rem;
+    }
+
+    .file {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .options {
+        font-size: 1rem;
+    }
+}

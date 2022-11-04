@@ -31,3 +31,20 @@ function getSize(fileSize) {
     const sizePrefix = Math.floor(Math.log(fileSize) / Math.log(bytes))
     return parseFloat((fileSize / Math.pow(bytes, sizePrefix)).toFixed(2)) + sizes[sizePrefix]
 }
+
+function dropTempData() {
+
+    const objProto = {
+
+        getUUID: function() {
+            return this.randomUUID
+        },
+
+        setUUID: function(uuid) {
+            this.randomUUID = uuid
+        }
+    }
+
+    const obj = Object.create(objProto)
+    return obj
+}

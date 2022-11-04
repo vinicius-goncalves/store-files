@@ -18,25 +18,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 })
 
-function dropTempData() {
-
-    const objProto = {
-
-        getUUID: function() {
-            return this.randomUUID
-        },
-
-        setUUID: function(uuid) {
-            this.randomUUID = uuid
-        }
-    }
-
-    const obj = Object.create(objProto)
-    return obj
-}
-
-const uuidObj = dropTempData()
-
 export function handleWithFile(event, dropFileZone, callback) {
 
     dropFileZone.classList.remove('enter-drag-file-zone')

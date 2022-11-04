@@ -29,7 +29,21 @@ dropFileZone.addEventListener('click', (event) => {
             if(dimensions) {
                 file.dimensions = dimensions
             }
-            putItem(file)
+
+            putItem(file, result => {
+                
+                switch(result.created) {
+                    case true:
+                        document.querySelector('.progress-percentage').textContent = 'Created!'
+                        break
+                    case false:
+                        document.querySelector('.progress-percetange').textContent = 'An error has occurred...'
+                        break
+                    default:
+                        break
+                }
+                
+            })
         })
     })
 })

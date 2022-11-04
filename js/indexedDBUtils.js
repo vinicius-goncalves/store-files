@@ -54,17 +54,33 @@ export function addItem(itemObj) {
     })
 }
 
-export function putItem(itemObj) {
+export function putItem(itemObj, callback) {
     getItemByKey(itemObj.id, itemFound => {
         if(itemFound) {
-            return 'Already exists' 
+            return callback('Already exists')
         }
 
         makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite').then(store => {
             const query = store.put(itemObj)
             query.addEventListener('success', (event) => {
-                console.log('Created ' + event.target.result)
+                
+                const successObj = {
+                    created: true,
+                    keyId: event.target.result
+                }
+
+                callback(successObj)
+
             })
+        })
+    })
+}
+
+export function getAllItems(callback) {
+    makeTransaction(GENERAL_OBJ_STORE_NAME).then(store => {
+        const query = store.getAll()
+        query.addEventListener('success', (event) => {
+            callback(event.target.result)
         })
     })
 }
