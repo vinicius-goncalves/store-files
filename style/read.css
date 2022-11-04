@@ -123,5 +123,24 @@ main .reading-item::before {
     background-color: var(--color6);
     bottom: 0;
     z-index: -1;
+}
 
+@media screen and (min-width: 900px) {
+    .progress-percentage {
+        font-size: 4rem;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    nav a {
+        display: block;
+    }
+
+    nav a.current-page {
+        margin: 10px;
+    }
+
+    .progress-percentage {
+        font-size: 2rem;
+    }
 }

@@ -30,7 +30,7 @@ function makeTransaction(objectStore, transactionType = 'readonly') {
     })
 }
 
-export function getItem(keyId, callback) {
+export function getItemByKey(keyId, callback) {
     makeTransaction(GENERAL_OBJ_STORE_NAME, 'readonly').then(store => {
         const query = store.get(keyId)
         query.addEventListener('success', (event) => {
@@ -55,7 +55,7 @@ export function addItem(itemObj) {
 }
 
 export function putItem(itemObj) {
-    getItem(itemObj.id, itemFound => {
+    getItemByKey(itemObj.id, itemFound => {
         if(itemFound) {
             return 'Already exists' 
         }
