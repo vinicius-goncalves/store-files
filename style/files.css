@@ -12,7 +12,7 @@ main .files-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 99vh;
+    min-height: 100vh;
 }
 
 .files-wrapper .file {
@@ -126,6 +126,12 @@ main .files-wrapper {
     }
 
     .options {
+        font-size: 1rem;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .dropdown-options a {
         font-size: 1rem;
     }
 }
