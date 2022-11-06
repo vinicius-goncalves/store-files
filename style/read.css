@@ -34,6 +34,10 @@ header h1 {
     margin-bottom: 10px;
 }
 
+nav {
+    margin-top: 25px;
+}
+
 nav a {
     font-size: 1.5rem;
     color: var(--color2);
@@ -132,6 +136,10 @@ main .reading-item::before {
 }
 
 @media screen and (max-width: 600px) {
+    nav { 
+        display: block;
+    }
+
     nav a {
         display: block;
     }
@@ -142,5 +150,11 @@ main .reading-item::before {
 
     .progress-percentage {
         font-size: 2rem;
+    }
+}
+
+@media screen and (max-width: 300px) {
+    nav a {
+        font-size: 1.2rem;
     }
 }
