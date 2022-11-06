@@ -1,4 +1,5 @@
 import { getAllItems } from './indexedDBUtils.js'
+import { downloadByBlob } from './utils.js'
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
@@ -89,6 +90,10 @@ window.addEventListener('load', (event) => {
             aDownload.appendChild(aDownloadTextNode)
 
             divDropdownOptions.append(aDownload)
+
+            aDownload.addEventListener('click', () => {
+                downloadByBlob([ item.buffer ], item.type)
+            })
             
 
             function createButtonsByType(type) {
