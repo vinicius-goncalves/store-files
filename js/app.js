@@ -2,6 +2,7 @@ import { randomUUID, getSize, CustomFile } from './utils.js'
 import { putItem } from './indexedDBUtils.js'
 
 const docEl = document.documentElement
+console.log(docEl.ownerDocument)
 
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -32,30 +33,27 @@ export function handleWithFile(event, dropFileZone, callback) {
         
         const fileReader = new FileReader()
         
-        
         const imagePromise = new Promise(resolve => {
             if(String(file.type).startsWith('image')) {
             
             
-                const image = new Image()
-                const attribute = document.createAttribute('src')
-                attribute.value = URL.createObjectURL(file)
-                image.setAttributeNode(attribute)
-    
-                document.body.append(image)
-    
-               image.addEventListener('load', () => {
-                    
-                   fileObj.dimensions = {
-                       width: image.naturalWidth,
-                       height: image.naturalHeight
-                    }
+            const image = new Image()
+            const attribute = document.createAttribute('src')
+            attribute.value = URL.createObjectURL(file)
+            image.setAttributeNode(attribute)
 
-                    resolve(fileObj)
-               })
-            }
+            image.addEventListener('load', () => {
+                
+                fileObj.dimensions = {
+                    width: image.naturalWidth,
+                    height: image.naturalHeight
+                }
 
-            resolve(fileObj)
+                resolve(fileObj)
+            })
+        }
+
+        resolve(fileObj)
 
         })
 

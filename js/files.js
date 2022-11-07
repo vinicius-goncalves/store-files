@@ -1,15 +1,35 @@
 import { getAllItems } from './indexedDBUtils.js'
-import { downloadByBlob } from './utils.js'
+import { downloadByBlob, createLoader } from './utils.js'
+
+const loader = createLoader(document.body)
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
-
 const docEl = document.documentElement
+
+
+function createButtonsByType(divDropdownOptions, item) {
+
+    if(item.type.includes('image')) {
+        const aView = document.createElement('a')
+        const aViewTextNode = document.createTextNode(`View: `)
+        aView.appendChild(aViewTextNode)
+
+        const spanView = document.createElement('span')
+        const spanViewTextNode = document.createTextNode(item.type)
+        spanView.setAttribute('class', 'view-file-type')
+        spanView.appendChild(spanViewTextNode)
+
+        aView.appendChild(spanView)
+
+        divDropdownOptions.appendChild(aView)
+    }
+}
 
 window.addEventListener('load', (event) => {
 
     getAllItems(items => {
-        
+
         const lis = items.map(item => {
             
             const blob = new Blob([ item.buffer ], { type: item.type })
@@ -95,26 +115,7 @@ window.addEventListener('load', (event) => {
                 downloadByBlob([ item.buffer ], item.type)
             })
             
-
-            function createButtonsByType(type) {
-                if(type.includes('image')) {
-                    const aView = document.createElement('a')
-                    const aViewTextNode = document.createTextNode(`View: `)
-                    aView.appendChild(aViewTextNode)
-
-                    const spanView = document.createElement('span')
-                    const spanViewTextNode = document.createTextNode(item.type)
-                    spanView.setAttribute('class', 'view-file-type')
-                    spanView.appendChild(spanViewTextNode)
-
-                    aView.appendChild(spanView)
-
-                    divDropdownOptions.appendChild(aView)
-                }
-            } 
-
-            createButtonsByType(item.type)
-            
+            createButtonsByType(divDropdownOptions, item)
 
             div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
 
@@ -124,13 +125,12 @@ window.addEventListener('load', (event) => {
             return docFrag
 
         })
-
         
         lis.forEach(li => filesWrapper.append(li))
         
         const dropdowns = document.querySelectorAll('.options')
+
         dropdowns.forEach(dropdown => {
-            
             dropdown.addEventListener('click', (event) => {
 
                 Array.from(filesWrapper.children).forEach(item => {
@@ -167,6 +167,47 @@ window.addEventListener('load', (event) => {
                 
             })
         })
+
+        dropdowns.forEach(dropdown => {
+                dropdown.addEventListener('click', (event) => {
+    
+                    Array.from(filesWrapper.children).forEach(item => {
+                        const dropdown = item.querySelector('.dropdown-options')
+                        if(dropdown) {
+                            dropdown.style.setProperty('display', 'none')
+                        }
+                    })
+                    
+                    event.stopPropagation()
+    
+                    const dropdownFound = document.querySelector(`[data-dropdown-id="${event.target.closest('li').dataset.itemId}"]`)
+    
+                    if(dropdownFound.style.display === 'none') {
+    
+                        dropdownFound.removeAttribute('style')
+                        dropdownFound.setAttribute('data-dropdown-active', event.target.closest('li').dataset.itemId)
+                        
+                        const coordX = event.pageX
+                        const coordY = event.pageY
+        
+                        dropdownFound.style.top = `${coordY}px`
+                        dropdownFound.style.left = `${coordX}px`
+    
+                        const rect = dropdownFound.getBoundingClientRect()
+                        if(rect.right > docEl.clientWidth) {
+                            dropdownFound.style.left = `${docEl.clientWidth - dropdownFound.offsetWidth}px`
+                        }
+    
+                        return
+                    }
+                    
+                    dropdownFound.style.display = 'none'
+                    
+                })
+            })
+
+        document.querySelector(`[data-loader-id="${loader}"]`)?.remove()
+
         
         const eventsToRemoveDropdown = [
             'click',
@@ -181,4 +222,37 @@ window.addEventListener('load', (event) => {
             })
         })
     })
+})
+
+let isScrolling = false
+let coordY = 0
+let prevScrollTop = 0
+
+filesWrapper.addEventListener('mousedown', (event) => {
+    event.preventDefault()
+    if(!isScrolling) {
+        prevScrollTop = filesWrapper.scrollTop
+        coordY = event.clientY
+        isScrolling = true
+    }
+})
+
+filesWrapper.addEventListener('mousemove', (event) => {
+    console.log(event.offsetY, event.pageY)
+    event.preventDefault()
+    if(isScrolling) {
+        filesWrapper.scrollTop = prevScrollTop - (event.clientY - coordY)
+    }
+})
+
+filesWrapper.addEventListener('mouseup', () => {
+    if(isScrolling) {
+        isScrolling = false
+    }
+})
+
+filesWrapper.addEventListener('mouseleave', (event) => {
+    if(isScrolling) {
+        isScrolling = false
+    }
 })

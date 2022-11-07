@@ -34,14 +34,47 @@ function getSize(fileSize) {
 
 function downloadByBlob(blobParts, type, name) {
 
-    const blob = new Blob(blobParts, { type })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `file-${name || new Intl.DateTimeFormat(navigator.language, {
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(Date.now())}`
-    a.click()
-    a.remove()
+    try {
+
+        const blob = new Blob(blobParts, { type })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = `file-${name || new Intl.DateTimeFormat(navigator.language, {
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(Date.now())}`
+        a.click()
+        a.remove()
+
+    } catch (error) {
+
+        console.log(error)
+
+    }
+}
+
+export function createLoader(insertBefore) {
+    
+    const div = document.createElement('div')
+    
+    const divClassAttr = document.createAttribute('class')
+    divClassAttr.value = 'loader-wrapper'
+    div.setAttributeNode(divClassAttr)
+
+    const divDataAttr = document.createAttribute('data-loader-id')
+    const id = Math.floor(Math.random() * (20 - 1) + 1)
+    divDataAttr.value = id
+    div.setAttributeNode(divDataAttr)
+
+    const divLoaderContent = document.createElement('div')
+    
+    const divLoaderClassAttr = document.createAttribute('class')
+    divLoaderClassAttr.value = 'loader-content'
+    divLoaderContent.setAttributeNode(divLoaderClassAttr)
+
+    div.appendChild(divLoaderContent)
+    insertBefore.insertAdjacentElement('afterbegin', div)
+
+    return id
 
 }
