@@ -238,7 +238,6 @@ filesWrapper.addEventListener('mousedown', (event) => {
 })
 
 filesWrapper.addEventListener('mousemove', (event) => {
-    console.log(event.offsetY, event.pageY)
     event.preventDefault()
     if(isScrolling) {
         filesWrapper.scrollTop = prevScrollTop - (event.clientY - coordY)
