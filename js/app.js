@@ -2,7 +2,6 @@ import { randomUUID, getSize, CustomFile } from './utils.js'
 import { putItem } from './indexedDBUtils.js'
 
 const docEl = document.documentElement
-console.log(docEl.ownerDocument)
 
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -108,11 +107,3 @@ export function handleWithFile(event, dropFileZone, callback) {
         })
     }
 }
-
-const events = ['dragover', 'drop']
-events.forEach(event => {
-    window.addEventListener(event, (e) => {
-        e.preventDefault()
-    })
-})
-

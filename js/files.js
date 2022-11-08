@@ -24,6 +24,23 @@ function createButtonsByType(divDropdownOptions, item) {
 
         divDropdownOptions.appendChild(aView)
     }
+    
+    if(item.type.includes('video')) {
+        
+        const aView = document.createElement('a')
+        const aViewTextNode = document.createTextNode('View: ')
+        aView.appendChild(aViewTextNode)
+
+        const spanView = document.createElement('span')
+        const spanViewTextNode = document.createTextNode(item.type)
+        spanView.setAttribute('class', 'view-file-type')
+        spanView.appendChild(spanViewTextNode)
+
+        aView.appendChild(spanView)
+
+        divDropdownOptions.appendChild(aView)
+
+    }
 }
 
 window.addEventListener('load', (event) => {
@@ -42,15 +59,38 @@ window.addEventListener('load', (event) => {
             liClassAttr.value = 'file'
             li.setAttributeNode(liClassAttr)
 
-            const img = document.createElement('img')
-            const imgSrcAttr = document.createAttribute('src')
-            imgSrcAttr.value = URL.createObjectURL(blob)
+            if(item.type.includes('image')) {
+
+                const img = document.createElement('img')
+                const imgSrcAttr = document.createAttribute('src')
+                imgSrcAttr.value = URL.createObjectURL(blob)
+                
+                const imgClassAttr = document.createAttribute('class')
+                imgClassAttr.value = 'file-img'
+                
+                img.setAttributeNode(imgSrcAttr)
+                img.setAttributeNode(imgClassAttr)
+
+                li.append(img)
+
+            }
+
+            if(item.type.includes('video')) {
+                
+                const video = document.createElement('video')
+                video.setAttribute('class', 'file-img')
+                
+                const srcVideo = document.createElement('source')
+                srcVideo.setAttribute('type', item.type)
+                srcVideo.setAttribute('src', URL.createObjectURL(blob))
+                
+                console.log(URL.createObjectURL(blob))
+
+                video.appendChild(srcVideo)
+
+                li.append(video)
             
-            const imgClassAttr = document.createAttribute('class')
-            imgClassAttr.value = 'file-img'
-            
-            img.setAttributeNode(imgSrcAttr)
-            img.setAttributeNode(imgClassAttr)
+            }
             
             const div = document.createElement('div')
             const divClassAttr = document.createAttribute('class')
@@ -119,7 +159,8 @@ window.addEventListener('load', (event) => {
 
             div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
 
-            li.append(img, div)
+            li.append(div)
+
             docFrag.appendChild(li)
             
             return docFrag

@@ -4,6 +4,49 @@ import { putItem } from './indexedDBUtils.js'
 
 const dropFileZone = document.querySelector('.drop-zone-file')
 
+const events = ['dragover', 'drop']
+events.forEach(event => {
+    window.addEventListener(event, (e) => {
+        e.preventDefault()
+    })
+})
+
+function createFile(event) {
+
+    handleWithFile(event, dropFileZone, fileObjResult => {
+            
+        const { dimensions, type, name, ['result']: arrBuffer } = fileObjResult
+
+        const uuid = randomUUID()
+        
+        const file = new CustomFile(
+                uuid, 
+                name, 
+                type, 
+                arrBuffer.byteLength, 
+                arrBuffer)
+
+        if(dimensions) {
+            file.dimensions = dimensions
+        }
+
+        putItem(file, result => {
+            
+            switch(result.created) {
+                case true:
+                    document.querySelector('.progress-percentage').textContent = 'Created!'
+                    break
+                case false:
+                    document.querySelector('.progress-percetange').textContent = 'An error has occurred...'
+                    break
+                default:
+                    break
+            }
+            
+        })
+    })
+}
+
 dropFileZone.addEventListener('click', (event) => {
 
     const element = document.createElement('input')
@@ -13,68 +56,18 @@ dropFileZone.addEventListener('click', (event) => {
     element.click()
 
     element.addEventListener('change', (event) => {
-        handleWithFile(event, dropFileZone, fileObjResult => {
-            
-            const { dimensions, type, name, ['result']: arrBuffer } = fileObjResult
-
-            const uuid = randomUUID()
-            
-            const file = new CustomFile(
-                    uuid, 
-                    name, 
-                    type, 
-                    arrBuffer.byteLength, 
-                    arrBuffer)
-
-            if(dimensions) {
-                file.dimensions = dimensions
-            }
-
-            putItem(file, result => {
-                
-                switch(result.created) {
-                    case true:
-                        document.querySelector('.progress-percentage').textContent = 'Created!'
-                        break
-                    case false:
-                        document.querySelector('.progress-percetange').textContent = 'An error has occurred...'
-                        break
-                    default:
-                        break
-                }
-                
-            })
-        })
+        createFile(event)
     })
 })
 
 dropFileZone.addEventListener('dragenter', () => {
-
-    const uuid = randomUUID()
-    uuidObj.setUUID(uuid)
-    
-    const attr = document.createAttribute('data-temp-uuid')
-    attr.value = uuidObj.getUUID()
-
-    dropFileZone.setAttributeNode(attr)
     dropFileZone.classList.add('enter-drag-file-zone')
-    
 })
 
-dropFileZone.addEventListener('dragover', (event) => {
-    event.preventDefault()
-})
-
-dropFileZone.addEventListener('dragleave', (event) => {
+dropFileZone.addEventListener('dragleave', () => {
     dropFileZone.classList.remove('enter-drag-file-zone')
 })
 
 dropFileZone.addEventListener('drop', (event) => {
-
-    event.preventDefault()
-    handleWithFile(event, dropFileZone, fileObjResult => {
-
-        console.log(fileObjResult)
-        
-    })
+    createFile(event)
 })
