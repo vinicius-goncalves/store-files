@@ -8,6 +8,75 @@ body {
     overflow: hidden;
 }
 
+.view-wrapper {
+    width: 0;
+    min-height: 100vh;
+    background-color: #000000c0;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.view-wrapper.active {
+    width: 100%;
+    animation: open-overlay 1s 1 ease-in-out;
+}
+
+.view-wrapper.close {
+    animation: close-overlay 1s 1 ease-in-out;
+}
+
+@keyframes open-overlay {
+    0% {
+        width: 0;
+    }
+
+    100% {
+        width: 100%;
+    }
+}
+
+@keyframes close-overlay {
+    0% {
+        width: 100%;
+    }
+
+    100% {
+        width: 0;
+    }
+}
+
+.view-wrapper i {
+    position: absolute;
+    right: 1%;
+    top: 1%;
+    font-size: 5em;
+    color: white;
+    cursor: pointer;
+    user-select: none;
+    transition: color 200ms;
+}
+
+.view-wrapper i:hover {
+    color: var(--color1);
+}
+
+.view-content .view-file-name {
+    color: white;
+    text-align: center;
+    font-size: 3.5rem;
+}
+
+.view-content .view-file-visualizer {
+    width: 500px;
+    height: 500px;
+}
+
 header h1 {
     display: block;
     position: relative;
