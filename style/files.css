@@ -66,15 +66,24 @@ body {
     color: var(--color1);
 }
 
+.view-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
 .view-content .view-file-name {
     color: white;
     text-align: center;
-    font-size: 3.5rem;
+    font-size: 3rem;
+    margin: 50px 0;
+    word-break: break-all;
 }
 
 .view-content .view-file-visualizer {
-    width: 500px;
-    height: 500px;
+    max-width: 33.33%;
 }
 
 header h1 {
@@ -218,6 +227,14 @@ main .files-wrapper::-webkit-scrollbar-thumb {
 }
 
 @media screen and (max-width: 650px) {
+
+    .view-wrapper i {
+        font-size: 2.5rem;
+    }
+
+    .view-content .view-file-name {
+        font-size: 1.5rem;
+    }
 
     main .files-wrapper {
         height: 650px;

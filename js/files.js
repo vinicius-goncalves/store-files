@@ -10,47 +10,52 @@ document.querySelector('[data-close="view-wrapper"]').addEventListener('click', 
     event.target.closest('.view-wrapper').classList.add('close')
 })
 
+const viewContent = document.querySelector('.view-content')
+
+const viewFileNameElement = document.createElement('h1')
+viewFileNameElement.setAttribute('class', 'view-file-name')
+viewContent.appendChild(viewFileNameElement)
+
 function createButtonsByType(divDropdownOptions, item) {
 
-    if(item.type.includes('image')) {
+    const aView = document.createElement('a')
+    const aViewTextNode = document.createTextNode(`View: `)
+    aView.appendChild(aViewTextNode)
 
-        const aView = document.createElement('a')
-        const aViewTextNode = document.createTextNode(`View: `)
-        aView.appendChild(aViewTextNode)
+    const spanView = document.createElement('span')
+    const spanViewTextNode = document.createTextNode(item.type)
+    spanView.setAttribute('class', 'view-file-type')
+    spanView.appendChild(spanViewTextNode)
 
-        const spanView = document.createElement('span')
-        const spanViewTextNode = document.createTextNode(item.type)
-        spanView.setAttribute('class', 'view-file-type')
-        spanView.appendChild(spanViewTextNode)
+    aView.appendChild(spanView)
 
-        aView.appendChild(spanView)
+    divDropdownOptions.appendChild(aView)
 
-        divDropdownOptions.appendChild(aView)
+    aView.addEventListener('click', () => {
 
-        aView.addEventListener('click', () => {
+        if(document.querySelector('.view-file-visualizer')) {
+            document.querySelector('.view-file-visualizer').remove() 
+        }
 
-            const viewWrapper = document.querySelector('.view-wrapper')
-            viewWrapper.classList.remove('close')
-            viewWrapper.classList.add('active')
-        })
-    }
-    
-    if(item.type.includes('video')) {
-        
-        const aView = document.createElement('a')
-        const aViewTextNode = document.createTextNode('View: ')
-        aView.appendChild(aViewTextNode)
+        const viewWrapper = document.querySelector('.view-wrapper')
+        viewWrapper.classList.remove('close')
+        viewWrapper.classList.add('active')
 
-        const spanView = document.createElement('span')
-        const spanViewTextNode = document.createTextNode(item.type)
-        spanView.setAttribute('class', 'view-file-type')
-        spanView.appendChild(spanViewTextNode)
+        const viewFileName = document.querySelector('.view-file-name')        
+        viewFileName.textContent = `${item.name}`
 
-        aView.appendChild(spanView)
+        if(item.type.indexOf('image') >= 0) {
 
-        divDropdownOptions.appendChild(aView)
+            const blob = new Blob([item.buffer], { type: item.type })
+            const src = URL.createObjectURL(blob)
 
-    }
+            const img = document.createElement('img')
+            img.setAttribute('class', 'view-file-visualizer')
+            img.setAttribute('src', src)
+
+            viewContent.appendChild(img)
+        }
+    })
 }
 
 window.addEventListener('load', (event) => {
