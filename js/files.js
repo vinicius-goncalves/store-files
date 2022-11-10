@@ -33,9 +33,8 @@ function createButtonsByType(divDropdownOptions, item) {
 
     aView.addEventListener('click', () => {
 
-        if(document.querySelector('.view-file-visualizer')) {
-            document.querySelector('.view-file-visualizer').remove() 
-        }
+        document.querySelector('.view-file-visualizer')?.remove()
+        document.querySelector('.view-file-visualizer-video')?.remove()
 
         const viewWrapper = document.querySelector('.view-wrapper')
         viewWrapper.classList.remove('close')
@@ -44,16 +43,31 @@ function createButtonsByType(divDropdownOptions, item) {
         const viewFileName = document.querySelector('.view-file-name')        
         viewFileName.textContent = `${item.name}`
 
-        if(item.type.indexOf('image') >= 0) {
+        const blob = new Blob([item.buffer], { type: item.type })
+        const src = URL.createObjectURL(blob)
 
-            const blob = new Blob([item.buffer], { type: item.type })
-            const src = URL.createObjectURL(blob)
+        if(item.type.indexOf('image') >= 0) {
 
             const img = document.createElement('img')
             img.setAttribute('class', 'view-file-visualizer')
             img.setAttribute('src', src)
 
-            viewContent.appendChild(img)
+            viewContent.insertAdjacentElement('afterbegin', img)
+        }
+
+        if(item.type.indexOf('video') >= 0) {
+
+            const video = document.createElement('video')
+            video.setAttribute('controls', 'true')
+            video.setAttribute('class', 'view-file-visualizer-video')
+
+            const source = document.createElement('source')
+            source.setAttribute('src', src)
+
+            video.appendChild(source)
+
+            viewContent.insertAdjacentElement('afterbegin', video)
+
         }
     })
 }

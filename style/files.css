@@ -24,12 +24,25 @@ body {
 
 .view-wrapper.active {
     width: 100%;
-    animation: open-overlay 1s 1 ease-in-out;
+    animation: open-overlay 600ms 1 ease-in-out;
 }
 
 .view-wrapper.close {
-    animation: close-overlay 1s 1 ease-in-out;
+    animation: close-overlay 600ms 1 ease-in-out;
 }
+
+.mouse {
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    position: absolute;
+    border-radius: 50%;
+    z-index: 1;
+}
+/* 
+.drag.moving {
+    transition: top 200ms, left 200ms;   
+} */
 
 @keyframes open-overlay {
     0% {
@@ -77,13 +90,17 @@ body {
 .view-content .view-file-name {
     color: white;
     text-align: center;
-    font-size: 3rem;
+    font-size: 1.7rem;
     margin: 50px 0;
     word-break: break-all;
 }
 
 .view-content .view-file-visualizer {
     max-width: 33.33%;
+}
+
+.view-content .view-file-visualizer-video {
+    max-width: 50%;
 }
 
 header h1 {
@@ -233,7 +250,7 @@ main .files-wrapper::-webkit-scrollbar-thumb {
     }
 
     .view-content .view-file-name {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
     }
 
     main .files-wrapper {
