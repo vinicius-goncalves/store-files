@@ -1,4 +1,4 @@
-export { randomUUID, getSize, CustomFile, downloadByBlob }
+export { randomUUID, getSize, CustomFile, downloadByBlob, createLoader, createElement }
 
 function randomUUID() {
     let dateTime = Date.now()
@@ -53,7 +53,7 @@ function downloadByBlob(blobParts, type, name) {
     }
 }
 
-export function createLoader(insertBefore) {
+function createLoader(insertBefore) {
     
     const div = document.createElement('div')
     
@@ -76,5 +76,17 @@ export function createLoader(insertBefore) {
     insertBefore.insertAdjacentElement('afterbegin', div)
 
     return id
+
+}
+
+function createElement(element, attributesObj) {
+    
+    const el = document.createElement(element)
+    
+    Object.keys(attributesObj).forEach(key => {
+        el.setAttribute(key, attributesObj[key])
+    })
+
+    return el
 
 }

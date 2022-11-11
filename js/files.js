@@ -1,5 +1,5 @@
 import { getAllItems } from './indexedDBUtils.js'
-import { downloadByBlob, createLoader } from './utils.js'
+import { downloadByBlob, createLoader, createElement } from './utils.js'
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
@@ -44,30 +44,45 @@ function createButtonsByType(divDropdownOptions, item) {
         viewFileName.textContent = `${item.name}`
 
         const blob = new Blob([item.buffer], { type: item.type })
-        const src = URL.createObjectURL(blob)
+        const blobSrc = URL.createObjectURL(blob)
 
         if(item.type.indexOf('image') >= 0) {
 
-            const img = document.createElement('img')
-            img.setAttribute('class', 'view-file-visualizer')
-            img.setAttribute('src', src)
-
+            const img = createElement('img', {
+                class: 'view-file-visualizer',
+                src: blobSrc
+            })
             viewContent.insertAdjacentElement('afterbegin', img)
         }
 
         if(item.type.indexOf('video') >= 0) {
 
-            const video = document.createElement('video')
-            video.setAttribute('controls', 'true')
-            video.setAttribute('class', 'view-file-visualizer-video')
+            const video = createElement('video', {
+                controls: 'true',
+                class: 'view-file-visualizer-video'
+            })
 
-            const source = document.createElement('source')
-            source.setAttribute('src', src)
-
+            const source = createElement('source', {
+                src: blobSrc
+            })
+            
             video.appendChild(source)
-
             viewContent.insertAdjacentElement('afterbegin', video)
 
+            video.addEventListener('loadedmetadata', (event) => {
+                
+                const durationInSeconds = event.target.duration
+
+                if(durationInSeconds <= 60) {
+                    return console.log(Math.floor(durationInSeconds))
+                } 
+
+                const hours = Math.floor(durationInSeconds / 3600)
+                const minutes = Math.floor(durationInSeconds % 3600 / 60)
+                const seconds = Math.floor(durationInSeconds % 3600 % 60)
+                
+                console.log(hours, minutes, seconds)
+            })
         }
     })
 }
