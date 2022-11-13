@@ -31,19 +31,6 @@ body {
     animation: close-overlay 600ms 1 ease-in-out;
 }
 
-.mouse {
-    width: 50px;
-    height: 50px;
-    background-color: red;
-    position: absolute;
-    border-radius: 50%;
-    z-index: 1;
-}
-/* 
-.drag.moving {
-    transition: top 200ms, left 200ms;   
-} */
-
 @keyframes open-overlay {
     0% {
         width: 0;
@@ -64,7 +51,7 @@ body {
     }
 }
 
-.view-wrapper i {
+.view-wrapper [data-close] {
     position: absolute;
     right: 1%;
     top: 1%;
@@ -75,7 +62,11 @@ body {
     transition: color 200ms;
 }
 
-.view-wrapper i:hover {
+.view-wrapper [data-close]:hover {
+    color: var(--color1);
+}
+
+input[type="range"]:in-range {
     color: var(--color1);
 }
 
@@ -85,6 +76,7 @@ body {
     justify-content: center;
     align-items: center;
     width: 100%;
+    position: relative;
 }
 
 .view-content .view-file-name {
@@ -101,6 +93,31 @@ body {
 
 .view-content .view-file-visualizer-video {
     max-width: 50%;
+}
+
+.media-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.duration {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 10px;
+}
+
+.media-buttons i {
+    color: white;
+    font-size: 3rem;
+    cursor: pointer;
+    transition: color 200ms;
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+}
+
+.media-buttons i:hover {
+    color: var(--color1);
 }
 
 header h1 {

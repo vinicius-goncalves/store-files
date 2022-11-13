@@ -57,8 +57,9 @@ function createButtonsByType(divDropdownOptions, item) {
 
         if(item.type.indexOf('video') >= 0) {
 
+            const x = document.querySelector('.media-buttons')
+
             const video = createElement('video', {
-                controls: 'true',
                 class: 'view-file-visualizer-video'
             })
 
@@ -69,52 +70,126 @@ function createButtonsByType(divDropdownOptions, item) {
             video.appendChild(source)
             viewContent.insertAdjacentElement('afterbegin', video)
 
-            video.addEventListener('progress', (event) => {
-                console.log(event)
-            })
+            let isPlaying = !video.paused
+            let interval = null
+
+            const pauseButton = document.querySelector('.pause')
+            const stopButton = document.querySelector('.stop')
+            const fastRewind = document.querySelector('.rewind')
+            const fastForward = document.querySelector('.forward')
+            const volume = document.querySelector('.volume')
+
+            const objDuration = Object.create(null)
+            
+            function updateTimeDetails() {
+                const hoursRemains = Math.floor((video.duration - video.currentTime) / 3600)
+                    const minutesRemain = Math.floor((video.duration - video.currentTime) / 60)
+                    const secondsRemain = Math.floor((video.duration - video.currentTime) % 60)
+
+                    const h = hoursRemains < 10 ? `0${hoursRemains}` : hoursRemains
+                    const m = minutesRemain < 10 ? `0${minutesRemain}` : minutesRemain
+                    const s = secondsRemain < 10 ? `0${secondsRemain}` : secondsRemain
+
+                    Object.defineProperty(objDuration, 'currentDuration', {
+                        value: video.duration > 3600 
+                            ? `${h}:${m}:${s}`
+                            : `${m}:${s}`,
+                        enumerable: true,
+                        writable: true
+                    })
+
+                    for(let property in objDuration) {
+                        const itemDurationByProperty = document.querySelector(`.${property}`)
+                        if(itemDurationByProperty instanceof Node) {
+                            itemDurationByProperty.textContent = `${objDuration[property]}`
+                        }
+                    }
+            }
 
             video.addEventListener('loadedmetadata', (event) => {
-                
-                const durationInSeconds = event.target.duration
-                console.log(durationInSeconds / 3600 % 60)
-                console.log(durationInSeconds % 3600 / 60)
-                console.log(durationInSeconds - Math.floor(durationInSeconds / 60) * 60)
 
-                // if(durationInSeconds <= 60) {
-                //     return console.log(Math.floor(durationInSeconds))
-                // } 
+                if(pauseButton.textContent.includes('pause') && !isPlaying) {
+                    pauseButton.textContent = 'play_arrow'
+                }
+
+                const durationInSeconds = event.target.duration
 
                 const hours = Math.floor(durationInSeconds / 3600)
                 const minutes = Math.floor(durationInSeconds % 3600 / 60)
                 const seconds = Math.floor(durationInSeconds % 3600 % 60)
+
+                Object.defineProperty(objDuration, 'totalDuration', {
+                    value: video.duration > 3600 
+                        ? `${hours}:${minutes}:${seconds}` 
+                        : `${minutes}:${seconds}` ,
+                    enumerable: true
+                })
+            })
+
+            video.addEventListener('loadeddata', () => {
                 
-            })
+                updateTimeDetails()
 
-            let isPlaying = !video.paused
-            let interval = null
-            
-            video.addEventListener('play', (event) => {
-                if(!isPlaying) {
-
-                    isPlaying = true
+                video.addEventListener('play', () => {
+                
                     interval = setInterval(() => {
-
-                        const durationInSeconds = event.target.currentTime
-                        // console.log(Math.floor(durationInSeconds - Math.floor(durationInSeconds / 60) * 60))
-
+                        updateTimeDetails()
                     }, 1000)
-                }
-            })
-
-            video.addEventListener('pause', (event) => {
-                if(isPlaying) {
-                    isPlaying = false
-                    clearInterval(interval)
-                }
-            })
-
-            video.addEventListener('timeupdate', (event) => {
-                console.log(event.target.currentTime % 60)
+                })
+    
+                video.addEventListener('pause', () => {
+                    if(interval) {
+                        clearInterval(interval)
+                    }
+                })
+    
+                pauseButton.addEventListener('click', () => {
+    
+                    if(video instanceof HTMLMediaElement) {
+    
+                        if(!isPlaying) {
+                            pauseButton.textContent = 'pause'
+                            isPlaying = true
+                            video.play()
+                            return
+                        }
+    
+                        pauseButton.textContent = 'play_arrow'
+                        isPlaying = false
+                        video.pause()
+                    }
+                })
+    
+                fastForward.addEventListener('click', () => {
+                    if(!(video.currentTime >= video.duration - 10)) {
+                        video.currentTime += 10
+                    }
+                })
+    
+                fastRewind.addEventListener('click', () => {
+                    if(!(video.currentTime <= 10)) {
+                        video.currentTime -= 10
+                    }
+                })
+    
+                //change -> To Microsoft IE
+                //input -> To Microsoft Edge (Chromium), Chrome, Safari, etc.
+                const volumeEvents = ['input', 'change']
+                volumeEvents.forEach(event => {
+                    volume.addEventListener(event, e => {
+                        const volume = Number.parseInt(e.target.value)
+                        video.volume = (volume / 100).toFixed(1)
+                    })
+                })
+    
+                stopButton.addEventListener('click', (event) => {
+                    if(isPlaying) {
+                        isPlaying = false
+                        pauseButton.textContent = 'play_arrow'
+                    }
+                    video.currentTime = 0
+                    video.pause()
+                })
             })
         }
     })
