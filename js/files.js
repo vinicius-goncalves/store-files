@@ -1,5 +1,5 @@
 import { getAllItems } from './indexedDBUtils.js'
-import { downloadByBlob, createLoader, createElement } from './utils.js'
+import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
@@ -69,19 +69,52 @@ function createButtonsByType(divDropdownOptions, item) {
             video.appendChild(source)
             viewContent.insertAdjacentElement('afterbegin', video)
 
+            video.addEventListener('progress', (event) => {
+                console.log(event)
+            })
+
             video.addEventListener('loadedmetadata', (event) => {
                 
                 const durationInSeconds = event.target.duration
+                console.log(durationInSeconds / 3600 % 60)
+                console.log(durationInSeconds % 3600 / 60)
+                console.log(durationInSeconds - Math.floor(durationInSeconds / 60) * 60)
 
-                if(durationInSeconds <= 60) {
-                    return console.log(Math.floor(durationInSeconds))
-                } 
+                // if(durationInSeconds <= 60) {
+                //     return console.log(Math.floor(durationInSeconds))
+                // } 
 
                 const hours = Math.floor(durationInSeconds / 3600)
                 const minutes = Math.floor(durationInSeconds % 3600 / 60)
                 const seconds = Math.floor(durationInSeconds % 3600 % 60)
                 
-                console.log(hours, minutes, seconds)
+            })
+
+            let isPlaying = !video.paused
+            let interval = null
+            
+            video.addEventListener('play', (event) => {
+                if(!isPlaying) {
+
+                    isPlaying = true
+                    interval = setInterval(() => {
+
+                        const durationInSeconds = event.target.currentTime
+                        // console.log(Math.floor(durationInSeconds - Math.floor(durationInSeconds / 60) * 60))
+
+                    }, 1000)
+                }
+            })
+
+            video.addEventListener('pause', (event) => {
+                if(isPlaying) {
+                    isPlaying = false
+                    clearInterval(interval)
+                }
+            })
+
+            video.addEventListener('timeupdate', (event) => {
+                console.log(event.target.currentTime % 60)
             })
         }
     })
@@ -158,7 +191,7 @@ window.addEventListener('load', (event) => {
                 pForSize.setAttribute('class', 'file-desc')
     
                 const spanSize = document.createElement('span')
-                const spanTextNode = document.createTextNode(item.size)
+                const spanTextNode = document.createTextNode(getSize(item.size))
                 spanSize.appendChild(spanTextNode)
                 spanSize.setAttribute('class', 'file-size')
                 pForSize.appendChild(spanSize)
