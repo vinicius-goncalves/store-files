@@ -1,4 +1,11 @@
-export { randomUUID, getSize, CustomFile, downloadByBlob, createLoader, createElement }
+export { 
+    randomUUID, 
+    getSize, 
+    CustomFile, 
+    downloadByBlob, 
+    createLoader, 
+    createElement,
+    formatWithZeroUnit }
 
 function randomUUID() {
     let dateTime = Date.now()
@@ -19,17 +26,25 @@ function CustomFile(id, name, type, size, buffer) {
 }
 
 function getSize(fileSize) {
+
     const bytes = 1024
+    const sizePrefix = fileSize === 0 ? 0 : Math.floor(Math.log(fileSize) / Math.log(bytes))
+
     const sizes = [
         'Bytes',
         'KB',
         'MB',
         'GB',
-        'TB'
+        'TB',
+        'PB',
+        'EB',
+        'ZB',
+        'YB',
     ]
 
-    const sizePrefix = Math.floor(Math.log(fileSize) / Math.log(bytes))
-    return parseFloat((fileSize / Math.pow(bytes, sizePrefix)).toFixed(2)) + sizes[sizePrefix]
+    return sizes.indexOf(sizes[sizePrefix]) === -1 
+        ? 'Unknown' 
+        : parseFloat((fileSize / Math.pow(bytes, sizePrefix))).toFixed(2) + sizes[sizePrefix]
 }
 
 function downloadByBlob(blobParts, type, name) {
@@ -88,5 +103,14 @@ function createElement(element, attributesObj) {
     })
 
     return el
+
+}
+
+function formatWithZeroUnit(unit) {
+    if(typeof unit !== 'number') {
+        throw new Error('The unit must be a number.')
+    }
+
+    return unit < 10 ? '0' + unit : window.parseInt(unit)
 
 }

@@ -106,14 +106,23 @@ input[type="range"]:in-range {
     margin: 0 10px;
 }
 
+.total-duration {
+    color: #9b9b9b;
+}
+
+.current-duration, 
+.total-duration,
+.media-buttons i {
+    user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+}
+
 .media-buttons i {
     color: white;
     font-size: 3rem;
     cursor: pointer;
     transition: color 200ms;
-    user-select: none;
-    -ms-user-select: none;
-    -webkit-user-select: none;
 }
 
 .media-buttons i:hover {

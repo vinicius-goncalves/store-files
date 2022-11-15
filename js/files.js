@@ -1,5 +1,5 @@
 import { getAllItems } from './indexedDBUtils.js'
-import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
+import { downloadByBlob, createLoader, createElement, getSize, formatWithZeroUnit } from './utils.js'
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
@@ -82,28 +82,29 @@ function createButtonsByType(divDropdownOptions, item) {
             const objDuration = Object.create(null)
             
             function updateTimeDetails() {
+
                 const hoursRemains = Math.floor((video.duration - video.currentTime) / 3600)
-                    const minutesRemain = Math.floor((video.duration - video.currentTime) / 60)
-                    const secondsRemain = Math.floor((video.duration - video.currentTime) % 60)
+                const minutesRemain = Math.floor((video.duration - video.currentTime) / 60)
+                const secondsRemain = Math.floor((video.duration - video.currentTime) % 60)
 
-                    const h = hoursRemains < 10 ? `0${hoursRemains}` : hoursRemains
-                    const m = minutesRemain < 10 ? `0${minutesRemain}` : minutesRemain
-                    const s = secondsRemain < 10 ? `0${secondsRemain}` : secondsRemain
+                const unitsToFormat = [hoursRemains, minutesRemain, secondsRemain]
+                    .map(item => formatWithZeroUnit(item))
+                const [ h, m, s ] = unitsToFormat
 
-                    Object.defineProperty(objDuration, 'currentDuration', {
-                        value: video.duration > 3600 
-                            ? `${h}:${m}:${s}`
-                            : `${m}:${s}`,
-                        enumerable: true,
-                        writable: true
-                    })
+                Object.defineProperty(objDuration, 'current-duration', {
+                    value: video.duration > 3600 
+                        ? `${h}:${m}:${s}`
+                        : `${m}:${s}`,
+                    enumerable: true,
+                    writable: true
+                })
 
-                    for(let property in objDuration) {
-                        const itemDurationByProperty = document.querySelector(`.${property}`)
-                        if(itemDurationByProperty instanceof Node) {
-                            itemDurationByProperty.textContent = `${objDuration[property]}`
-                        }
+                for(let property in objDuration) {
+                    const itemDurationByProperty = document.querySelector(`.${property}`)
+                    if(itemDurationByProperty instanceof Node) {
+                        itemDurationByProperty.textContent = `${objDuration[property]}`
                     }
+                }
             }
 
             video.addEventListener('loadedmetadata', (event) => {
@@ -118,7 +119,7 @@ function createButtonsByType(divDropdownOptions, item) {
                 const minutes = Math.floor(durationInSeconds % 3600 / 60)
                 const seconds = Math.floor(durationInSeconds % 3600 % 60)
 
-                Object.defineProperty(objDuration, 'totalDuration', {
+                Object.defineProperty(objDuration, 'total-duration', {
                     value: video.duration > 3600 
                         ? `${hours}:${minutes}:${seconds}` 
                         : `${minutes}:${seconds}` ,
