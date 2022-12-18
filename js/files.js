@@ -1,5 +1,6 @@
 import { getAllItems } from './indexedDBUtils.js'
 import { downloadByBlob, createLoader, createElement, getSize, formatWithZeroUnit } from './utils.js'
+import { handleWithMedia } from './media-utils.js'
 
 const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
@@ -46,7 +47,6 @@ function createButtonsByType(divDropdownOptions, item) {
 
         URL.revokeObjectURL(currentMedia)
         currentMedia = URL.createObjectURL(blob)
-        console.log(currentMedia)
 
         if(item.type.indexOf('image') >= 0) {
 
@@ -72,154 +72,8 @@ function createButtonsByType(divDropdownOptions, item) {
             video.appendChild(source)
             viewContent.insertAdjacentElement('afterbegin', video)
             
-            let isPlaying = !video.paused
-            let interval = null
+            handleWithMedia(video)
 
-            const pauseButton = document.querySelector('.pause')
-            const stopButton = document.querySelector('.stop')
-            const fastRewind = document.querySelector('.rewind')
-            const fastForward = document.querySelector('.forward')
-            const volume = document.querySelector('.volume')
-
-            const objDuration = Object.create(null)
-
-            function updateTimeDetails() {
-
-                const hoursRemains = Math.floor((video.duration - video.currentTime) / 3600)
-                const minutesRemain = Math.floor((video.duration - video.currentTime) / 60 % 60)
-                const secondsRemain = Math.floor((video.duration - video.currentTime) % 60)
-
-                const unitsToFormat = [hoursRemains, minutesRemain, secondsRemain]
-                    .map(item => formatWithZeroUnit(item))
-                const [ hours, minutes, seconds ] = unitsToFormat
-
-                Object.defineProperty(objDuration, 'current-duration', {
-                    value: video.duration > 3600 
-                        ? `${hours}:${minutes}:${seconds}`
-                        : `${minutes}:${seconds}`,
-                    enumerable: true,
-                    writable: true
-                })
-
-                for(let property in objDuration) {
-                    const itemDurationByProperty = document.querySelector(`.${property}`)
-                    if(itemDurationByProperty instanceof Node
-                            && Object.prototype.hasOwnProperty.call(objDuration, property)) {
-                        itemDurationByProperty.textContent = `${objDuration[property]}`
-                    }
-                }
-            }
-
-            video.addEventListener('loadedmetadata', (event) => {
-
-                if(pauseButton.textContent.includes('pause') && !isPlaying) {
-                    pauseButton.textContent = 'play_arrow'
-                }
-
-                const durationInSeconds = event.target.duration
-
-                const hoursCurrent = Math.floor(durationInSeconds / 3600)
-                const minutesCurrent = Math.floor(durationInSeconds % 3600 / 60)
-                const secondsCurrent = Math.floor(durationInSeconds % 3600 % 60)
-
-                const unitsToFormat = [ 
-                        hoursCurrent, 
-                        minutesCurrent, 
-                        secondsCurrent ].map(unit => formatWithZeroUnit(unit))
-                        
-                const [ hours, minutes, seconds ] = unitsToFormat
-
-                Object.defineProperty(objDuration, 'total-duration', {
-                    value: video.duration > 3600 
-                        ? `${hours}:${minutes}:${seconds}` 
-                        : `${minutes}:${seconds}` ,
-                    enumerable: true
-                })
-                console.log(durationInSeconds)
-            })
-
-            video.addEventListener('loadeddata', () => {
-                
-                updateTimeDetails()
-
-                video.addEventListener('play', () => {
-                
-                    interval = setInterval(() => {
-                        updateTimeDetails()
-                    }, 1000)
-                })
-    
-                video.addEventListener('pause', () => {
-                    if(interval) {
-                        clearInterval(interval)
-                    }
-                })
-    
-                pauseButton.addEventListener('click', () => {
-    
-                    if(video instanceof HTMLMediaElement) {
-    
-                        if(!isPlaying) {
-                            pauseButton.textContent = 'pause'
-                            isPlaying = true
-                            video.play()
-                            return
-                        }
-    
-                        pauseButton.textContent = 'play_arrow'
-                        isPlaying = false
-                        video.pause()
-                    }
-                })
-    
-                fastForward.addEventListener('click', () => {
-                    if(!(video.currentTime >= video.duration - 10)) {
-                        video.currentTime += 10
-                    }
-                })
-    
-                fastRewind.addEventListener('click', () => {
-                    if(!(video.currentTime <= 10)) {
-                        video.currentTime -= 10
-                    }
-                })
-    
-                //change -> To Microsoft IE
-                //input -> To Microsoft Edge (Chromium), Chrome, Safari, etc.
-                const volumeEvents = ['input', 'change']
-                volumeEvents.forEach(event => {
-                    volume.addEventListener(event, e => {
-                        const volume = Number.parseInt(e.target.value)
-                        video.volume = (volume / 100).toFixed(1)
-                    })
-                })
-    
-                stopButton.addEventListener('click', (event) => {
-                    if(isPlaying) {
-                        isPlaying = false
-                        pauseButton.textContent = 'play_arrow'
-                    }
-                    video.currentTime = 0
-                    video.pause()
-                })
-
-                const speed = document.querySelector('.speed')
-                speed.addEventListener('click', () => {
-                    video.playbackRate += .25
-                    if(video.playbackRate > 2) {
-                        video.playbackRate = .25
-                    }
-                    speed.textContent = `x${video.playbackRate}`
-                })
-
-                video.addEventListener('ratechange', () => {
-                    clearInterval(interval)
-                    interval = setInterval(() => {
-                        updateTimeDetails()
-                    }, video.playbackRate < 1 ? video.playbackRate * 1000 : video.playbackRate / 1000)
-                    console.log(interval)
-                })
-            })
         }
     })
 }
