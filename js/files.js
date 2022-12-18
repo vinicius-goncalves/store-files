@@ -5,6 +5,8 @@ const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
 const docEl = document.documentElement
 
+let currentMedia = null
+
 document.querySelector('[data-close="view-wrapper"]').addEventListener('click', (event) => {
     event.target.closest('.view-wrapper').classList.remove('active')
     event.target.closest('.view-wrapper').classList.add('close')
@@ -33,9 +35,6 @@ function createButtonsByType(divDropdownOptions, item) {
 
     aView.addEventListener('click', () => {
 
-        document.querySelector('.view-file-visualizer')?.remove()
-        document.querySelector('.view-file-visualizer-video')?.remove()
-
         const viewWrapper = document.querySelector('.view-wrapper')
         viewWrapper.classList.remove('close')
         viewWrapper.classList.add('active')
@@ -44,32 +43,35 @@ function createButtonsByType(divDropdownOptions, item) {
         viewFileName.textContent = `${item.name}`
 
         const blob = new Blob([item.buffer], { type: item.type })
-        const blobSrc = URL.createObjectURL(blob)
+
+        URL.revokeObjectURL(currentMedia)
+        currentMedia = URL.createObjectURL(blob)
+        console.log(currentMedia)
 
         if(item.type.indexOf('image') >= 0) {
 
             const img = createElement('img', {
                 class: 'view-file-visualizer',
-                src: blobSrc
+                src: currentMedia
             })
             viewContent.insertAdjacentElement('afterbegin', img)
         }
 
         if(item.type.indexOf('video') >= 0) {
 
-            const x = document.querySelector('.media-buttons')
+            document.querySelector('.view-file-visualizer-video')?.remove()
 
             const video = createElement('video', {
-                class: 'view-file-visualizer-video'
+                class: 'view-file-visualizer-video'    
             })
 
             const source = createElement('source', {
-                src: blobSrc
+                src: currentMedia
             })
-            
+
             video.appendChild(source)
             viewContent.insertAdjacentElement('afterbegin', video)
-
+            
             let isPlaying = !video.paused
             let interval = null
 
@@ -80,28 +82,29 @@ function createButtonsByType(divDropdownOptions, item) {
             const volume = document.querySelector('.volume')
 
             const objDuration = Object.create(null)
-            
+
             function updateTimeDetails() {
 
                 const hoursRemains = Math.floor((video.duration - video.currentTime) / 3600)
-                const minutesRemain = Math.floor((video.duration - video.currentTime) / 60)
+                const minutesRemain = Math.floor((video.duration - video.currentTime) / 60 % 60)
                 const secondsRemain = Math.floor((video.duration - video.currentTime) % 60)
 
                 const unitsToFormat = [hoursRemains, minutesRemain, secondsRemain]
                     .map(item => formatWithZeroUnit(item))
-                const [ h, m, s ] = unitsToFormat
+                const [ hours, minutes, seconds ] = unitsToFormat
 
                 Object.defineProperty(objDuration, 'current-duration', {
                     value: video.duration > 3600 
-                        ? `${h}:${m}:${s}`
-                        : `${m}:${s}`,
+                        ? `${hours}:${minutes}:${seconds}`
+                        : `${minutes}:${seconds}`,
                     enumerable: true,
                     writable: true
                 })
 
                 for(let property in objDuration) {
                     const itemDurationByProperty = document.querySelector(`.${property}`)
-                    if(itemDurationByProperty instanceof Node) {
+                    if(itemDurationByProperty instanceof Node
+                            && Object.prototype.hasOwnProperty.call(objDuration, property)) {
                         itemDurationByProperty.textContent = `${objDuration[property]}`
                     }
                 }
@@ -115,9 +118,16 @@ function createButtonsByType(divDropdownOptions, item) {
 
                 const durationInSeconds = event.target.duration
 
-                const hours = Math.floor(durationInSeconds / 3600)
-                const minutes = Math.floor(durationInSeconds % 3600 / 60)
-                const seconds = Math.floor(durationInSeconds % 3600 % 60)
+                const hoursCurrent = Math.floor(durationInSeconds / 3600)
+                const minutesCurrent = Math.floor(durationInSeconds % 3600 / 60)
+                const secondsCurrent = Math.floor(durationInSeconds % 3600 % 60)
+
+                const unitsToFormat = [ 
+                        hoursCurrent, 
+                        minutesCurrent, 
+                        secondsCurrent ].map(unit => formatWithZeroUnit(unit))
+                        
+                const [ hours, minutes, seconds ] = unitsToFormat
 
                 Object.defineProperty(objDuration, 'total-duration', {
                     value: video.duration > 3600 
@@ -125,6 +135,7 @@ function createButtonsByType(divDropdownOptions, item) {
                         : `${minutes}:${seconds}` ,
                     enumerable: true
                 })
+                console.log(durationInSeconds)
             })
 
             video.addEventListener('loadeddata', () => {
@@ -191,12 +202,29 @@ function createButtonsByType(divDropdownOptions, item) {
                     video.currentTime = 0
                     video.pause()
                 })
+
+                const speed = document.querySelector('.speed')
+                speed.addEventListener('click', () => {
+                    video.playbackRate += .25
+                    if(video.playbackRate > 2) {
+                        video.playbackRate = .25
+                    }
+                    speed.textContent = `x${video.playbackRate}`
+                })
+
+                video.addEventListener('ratechange', () => {
+                    clearInterval(interval)
+                    interval = setInterval(() => {
+                        updateTimeDetails()
+                    }, video.playbackRate < 1 ? video.playbackRate * 1000 : video.playbackRate / 1000)
+                    console.log(interval)
+                })
             })
         }
     })
 }
 
-window.addEventListener('load', (event) => {
+window.addEventListener('load', () => {
 
     const loader = createLoader(document.body)
 
@@ -313,9 +341,7 @@ window.addEventListener('load', (event) => {
                 createButtonsByType(divDropdownOptions, item)
     
                 div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
-    
                 li.append(div)
-    
                 docFrag.appendChild(li)
                 
                 return docFrag

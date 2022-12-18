@@ -28,7 +28,9 @@ function CustomFile(id, name, type, size, buffer) {
 function getSize(fileSize) {
 
     const bytes = 1024
-    const sizePrefix = fileSize === 0 ? 0 : Math.floor(Math.log(fileSize) / Math.log(bytes))
+    const sizePrefix = fileSize === 0 
+        ? 0 
+        : Math.floor(Math.log(fileSize) / Math.log(bytes))
 
     const sizes = [
         'Bytes',
@@ -53,17 +55,19 @@ function downloadByBlob(blobParts, type, name) {
 
         const blob = new Blob(blobParts, { type })
         const a = document.createElement('a')
+
         a.href = URL.createObjectURL(blob)
         a.download = `file-${name || new Intl.DateTimeFormat(navigator.language, {
             hour: '2-digit',
             minute: '2-digit'
         }).format(Date.now())}`
+        
         a.click()
         a.remove()
 
     } catch (error) {
 
-        console.log(error)
+        console.error(error)
 
     }
 }

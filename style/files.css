@@ -118,14 +118,21 @@ input[type="range"]:in-range {
     -webkit-user-select: none;
 }
 
-.media-buttons i {
+.media-buttons i,
+.speed {
     color: white;
     font-size: 3rem;
     cursor: pointer;
     transition: color 200ms;
 }
 
-.media-buttons i:hover {
+.speed {
+    font-size: 2.5rem;
+    margin: 0 10px;
+}
+
+.media-buttons i:hover,
+.speed:hover {
     color: var(--color1);
 }
 
