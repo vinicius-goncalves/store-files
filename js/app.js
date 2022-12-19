@@ -73,7 +73,7 @@ export function handleWithFile(event, dropFileZone, callback) {
 
                 docEl.style.setProperty('--reading-file-height', `${progress}%`)
 
-                const readingProgressPercetange = document.querySelector('.progress-percentage')
+                const readingProgressPercentage = document.querySelector('.progress-percentage')
                 
                 const currentProgress = currentPercentage >= 0 && currentPercentage <= 99 
                     ? `${currentPercentage}%`
@@ -81,11 +81,11 @@ export function handleWithFile(event, dropFileZone, callback) {
 
                 const textContentNode = document.createTextNode(currentProgress)
 
-                if(readingProgressPercetange.childNodes[0].nodeType === Node.TEXT_NODE) {
-                    readingProgressPercetange.childNodes[0].remove()
+                if(readingProgressPercentage.childNodes[0].nodeType === Node.TEXT_NODE) {
+                    readingProgressPercentage.childNodes[0].remove()
                 }
 
-                readingProgressPercetange.append(textContentNode)
+                readingProgressPercentage.append(textContentNode)
 
             })
 

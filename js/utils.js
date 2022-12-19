@@ -4,8 +4,7 @@ export {
     CustomFile, 
     downloadByBlob, 
     createLoader, 
-    createElement,
-    formatWithZeroUnit }
+    createElement, }
 
 function randomUUID() {
     let dateTime = Date.now()
@@ -107,14 +106,5 @@ function createElement(element, attributesObj) {
     })
 
     return el
-
-}
-
-function formatWithZeroUnit(unit) {
-    if(typeof unit !== 'number') {
-        throw new Error('The unit must be a number.')
-    }
-
-    return unit < 10 ? '0' + unit : window.parseInt(unit)
 
 }

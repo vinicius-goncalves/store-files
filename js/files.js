@@ -1,8 +1,8 @@
 import { getAllItems } from './indexedDBUtils.js'
-import { downloadByBlob, createLoader, createElement, getSize, formatWithZeroUnit } from './utils.js'
+import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
 import { handleWithMedia } from './media-utils.js'
 
-const dropdownOptions = document.querySelector('.dropdown-options')
+// const dropdownOptions = document.querySelector('.dropdown-options')
 const filesWrapper = document.querySelector('.files-wrapper')
 const docEl = document.documentElement
 
@@ -43,6 +43,7 @@ function createButtonsByType(divDropdownOptions, item) {
         const viewFileName = document.querySelector('.view-file-name')        
         viewFileName.textContent = `${item.name}`
 
+        console.log()
         const blob = new Blob([item.buffer], { type: item.type })
 
         URL.revokeObjectURL(currentMedia)
@@ -81,7 +82,7 @@ function createButtonsByType(divDropdownOptions, item) {
 window.addEventListener('load', () => {
 
     const loader = createLoader(document.body)
-
+    
     getAllItems(items => {
 
         try {

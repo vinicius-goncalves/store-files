@@ -5,35 +5,61 @@ function formatUnit(unit) {
     return unit < 10 ? `0${unit}` : `${unit}`
 }
 
+function updateDOMTime() {
+
+    Object.entries(timeObj).forEach(pair => {
+        const [ selector, value ] = pair
+
+        const DOMEl = document.querySelector(`.${selector}`)
+        DOMEl.textContent = value
+
+    })
+}
+
 function getTotalTime(video) {
 
     if(!(video instanceof HTMLVideoElement)) {
-        throw new Error('Video (args) must be an instance of HTMLVideoElement')
+        throw new Error(`Video (args) must be an instance of HTMLVideoElement, the value ${video} was passed.`)
     }
 
-    const { duration } = video
+    try {
 
-    const totalHours = Math.floor(duration / 3600)
-    const totalMinutes = Math.floor(duration % 3600 / 60)
-    const totalSeconds = Math.floor(duration % 3600 % 60)
+        const { duration } = video
+
+        const totalHours = Math.floor(duration / 3600)
+        const totalMinutes = Math.floor(duration % 3600 / 60)
+        const totalSeconds = Math.floor(duration % 3600 % 60)
     
-    const unitsToFormat = totalHours == 0 
-        ? [totalMinutes, totalSeconds]
-        : [totalHours, totalMinutes, totalSeconds]
+        const unitsToFormat = totalHours == 0 
+            ? [totalMinutes, totalSeconds]
+            : [totalHours, totalMinutes, totalSeconds]
+    
+        const unitsFormatted = unitsToFormat.map(unit => formatUnit(unit)).join(':')
+    
+        Object.defineProperties(timeObj, {
+            'total-duration': {
+                value: unitsFormatted,
+                enumerable: true,
+                writable: true
+            },
+            'remain-duration': {
+                value: unitsFormatted,
+                enumerable: true,
+                writable: true
+            }
+        })
 
-    const unitsFormatted = unitsToFormat.map(unit => formatUnit(unit)).join(':')
-
-    Object.defineProperty(timeObj, 'total-duration', {
-        value: unitsFormatted,
-        enumerable: true,
-        writable: true
-    })
+    } catch (error) {
+        console.log(error)
+    } finally {
+        updateDOMTime()
+    }
 }
 
 function getCurrentTime(video) {
 
     if(!(video instanceof HTMLVideoElement)) {
-        throw new Error('Video (args) must be an instance of HTMLVideoElement')
+        throw new Error(`Video (args) must be an instance of HTMLVideoElement, the value ${video} was passed.`)
     }
 
     if(video.paused) {
@@ -43,24 +69,31 @@ function getCurrentTime(video) {
     
     currentInterval = setInterval(() => {
         
-        const { duration, currentTime } = video
+        try {
 
-        const currentHours = Math.floor((duration - currentTime) / 3600)
-        const currentMinutes = Math.floor((duration - currentTime) / 60 % 60)
-        const currentSeconds = Math.floor((duration - currentTime) % 60)
+            const { duration, currentTime } = video
 
-        const unitsToFormat = currentHours == 0 
-            ? [currentMinutes, currentSeconds]
-            : [currentHours, currentMinutes, currentSeconds]
+            const currentHours = Math.floor((duration - currentTime) / 3600)
+            const currentMinutes = Math.floor((duration - currentTime) / 60 % 60)
+            const currentSeconds = Math.floor((duration - currentTime) % 60)
 
-        const unitsFormatted = unitsToFormat.map(unit => formatUnit(unit)).join(':')
+            const unitsToFormat = currentHours == 0 
+                ? [currentMinutes, currentSeconds]
+                : [currentHours, currentMinutes, currentSeconds]
 
-        Object.defineProperty(timeObj, 'remain-duration', {
-            value: unitsFormatted,
-            enumerable: true,
-            writable: true
-        })
+            const unitsFormatted = unitsToFormat.map(unit => formatUnit(unit)).join(':')
 
+            Object.defineProperty(timeObj, 'remain-duration', {
+                value: unitsFormatted,
+                enumerable: true,
+                writable: true
+            })
+
+        } catch (error) {
+            console.log(error)
+        } finally {
+            updateDOMTime()
+        }
     }, 1000)
 }
 
@@ -78,57 +111,66 @@ function setVideoStatus(video, status) {
 
 export function handleWithMedia(currentVideo) {
 
-    if(currentVideo instanceof HTMLVideoElement) {
-        
-        const pauseButton = document.querySelector('.pause')
-        const stopButton = document.querySelector('.stop')
-        const rewindButton = document.querySelector('.rewind')
-        const forwardButton = document.querySelector('.forward')
+    if(!(currentVideo instanceof HTMLVideoElement)) {
+        return
+    }
 
-        function loadEvents() {
+    const pauseButton = document.querySelector('.pause')
+    const stopButton = document.querySelector('.stop')
+    const rewindButton = document.querySelector('.rewind')
+    const forwardButton = document.querySelector('.forward')
+    
+    function loadEvents() {
 
-            pauseButton.addEventListener('click', () => {
-
-                const button = currentVideo.paused
-                    ? setVideoStatus(currentVideo, 'play')
-                    : setVideoStatus(currentVideo, 'pause')
-
-                pauseButton.textContent = button.currentButton
-
-            })
-
-            currentVideo.addEventListener('play', () => {
+        const eventsToUpdateCurrentTime = ['play', 'pause']
+        eventsToUpdateCurrentTime.forEach(event => {
+            currentVideo.addEventListener(event, () => {
                 getCurrentTime(currentVideo)
             })
+        })
 
-            currentVideo.addEventListener('pause', () => {
-                getCurrentTime(currentVideo)
-            })
+        pauseButton.addEventListener('click', () => {
 
-            rewindButton.addEventListener('click', () => {
-                if(!(video.currentTime <= 10)) {
-                    video.currentTime -= 10
-                    return   
-                }
-            })
+            const buttonStatus = currentVideo.paused
+                ? setVideoStatus(currentVideo, 'play')
+                : setVideoStatus(currentVideo, 'pause')
 
-            forwardButton.addEventListener('click', () => {
-                if(!(video.currentTime >= video.duration - 10)) {
-                    video.currentTime += 10
-                    return
-                }
-            })
-        }
+            pauseButton.textContent = buttonStatus.currentButton
 
-        currentVideo.addEventListener('loadedmetadata', () => {
-            
-            if(currentVideo.paused) {
-                pauseButton.textContent = 'play_arrow'
+        })
+
+        stopButton.addEventListener('click', () => {
+
+            const buttonStatus = setVideoStatus(currentVideo, 'pause')
+
+            currentVideo.currentTime = 0
+            pauseButton.textContent = buttonStatus.currentButton
+
+        })
+
+        rewindButton.addEventListener('click', () => {
+            if(!(currentVideo.currentTime <= 10)) {
+                currentVideo.currentTime -= 10
+                return   
             }
-            
-            getTotalTime(currentVideo)
-            loadEvents()
-              
+        })
+
+        forwardButton.addEventListener('click', () => {
+            if(!(currentVideo.currentTime >= currentVideo.duration - 10)) {
+                currentVideo.currentTime += 10
+                return
+            }
         })
     }
+
+    currentVideo.addEventListener('loadedmetadata', () => {
+        
+        pauseButton.textContent = currentVideo.paused
+            ? 'play_arrow'
+            : 'play'
+    
+        loadEvents()
+        getTotalTime(currentVideo)
+
+    })
 }
