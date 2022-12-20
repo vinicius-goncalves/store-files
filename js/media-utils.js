@@ -1,5 +1,33 @@
 const timeObj = Object.create(null)
-let currentInterval = null
+
+function Interval() {
+
+    this.startInterval = function(callback) {
+        setInterval(callback, 1000)
+    }
+
+    this.deleteInterval = function() {
+        clearInterval(this.interval)
+    }
+}
+
+function renderVolume() {
+    
+    const volumeDatalist = document.querySelector('#volume')
+    const docFrag = document.createDocumentFragment()
+
+    for(let i = 0; i < 100; i += 10) {
+        
+        const option = document.createElement('option')
+        option.setAttribute('value', i)
+        docFrag.appendChild(option)
+
+    }
+
+    volumeDatalist.appendChild(docFrag)
+}
+
+window.addEventListener('DOMContentLoaded', renderVolume.bind(this))
 
 function formatUnit(unit) {
     return unit < 10 ? `0${unit}` : `${unit}`
@@ -62,13 +90,14 @@ function getCurrentTime(video) {
         throw new Error(`Video (args) must be an instance of HTMLVideoElement, the value ${video} was passed.`)
     }
 
+    const newInterval = new Interval()
+
     if(video.paused) {
-        clearInterval(currentInterval)
+        newInterval.deleteInterval()
         return
     }
     
-    currentInterval = setInterval(() => {
-        
+    function updateRemainDuration() {
         try {
 
             const { duration, currentTime } = video
@@ -94,7 +123,9 @@ function getCurrentTime(video) {
         } finally {
             updateDOMTime()
         }
-    }, 1000)
+    }
+
+    newInterval.startInterval(updateRemainDuration.bind(this))
 }
 
 function setVideoStatus(video, status) {
@@ -107,6 +138,24 @@ function setVideoStatus(video, status) {
         video.play()
         return { paused: false, currentButton: 'pause' }
     }
+
+    if(status === 'stop') {
+        video.pause()
+        video.currentTime = 0
+        return { paused: true, currentButton: 'play_arrow' }
+    }
+}
+
+function videoSpeedManager() {
+    
+    let currentSpeed = 1
+
+    function updateSpeed() {
+        currentSpeed = currentSpeed >= 2 ? .25 : currentSpeed + .25
+        return { newSpeed: currentSpeed }
+    }
+
+    return { updateSpeed }
 }
 
 export function handleWithMedia(currentVideo) {
@@ -119,6 +168,8 @@ export function handleWithMedia(currentVideo) {
     const stopButton = document.querySelector('.stop')
     const rewindButton = document.querySelector('.rewind')
     const forwardButton = document.querySelector('.forward')
+    const speedButton = document.querySelector('.speed')
+    const volumeRange = document.querySelector('.volume')
     
     function loadEvents() {
 
@@ -141,9 +192,7 @@ export function handleWithMedia(currentVideo) {
 
         stopButton.addEventListener('click', () => {
 
-            const buttonStatus = setVideoStatus(currentVideo, 'pause')
-
-            currentVideo.currentTime = 0
+            const buttonStatus = setVideoStatus(currentVideo, 'stop')
             pauseButton.textContent = buttonStatus.currentButton
 
         })
@@ -160,6 +209,21 @@ export function handleWithMedia(currentVideo) {
                 currentVideo.currentTime += 10
                 return
             }
+        })
+
+        const videoSpeed = videoSpeedManager()
+        speedButton.addEventListener('click', () => {
+            
+            const { newSpeed } = videoSpeed.updateSpeed()
+            currentVideo.playbackRate = newSpeed
+            speedButton.textContent = `x${newSpeed}`
+
+        })
+
+        volumeRange.addEventListener('input', () => {
+            const { value } = volumeRange
+            currentVideo.volume = (value / 100)
+
         })
     }
 

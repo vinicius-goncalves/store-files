@@ -112,7 +112,8 @@ input[type="range"]:in-range {
 
 .current-duration, 
 .total-duration,
-.media-buttons i {
+.media-buttons i,
+.speed {
     user-select: none;
     -ms-user-select: none;
     -webkit-user-select: none;

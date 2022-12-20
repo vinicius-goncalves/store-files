@@ -89,37 +89,6 @@ export function getAllItems(callback) {
         const query = store.getAll()
 
         query.addEventListener('success', (event) => {
-            
-            const items = event.target.result.map(item => {
-                
-                // const binaryArr = [...new Uint8Array(item.buffer)]
-                // const arrays = []
-
-                console.log(item)
-                // const p1 = performance.now()
-                // for(let i = 0; i < binaryArr.length; i += 1024) {
-                    
-                //     const chars = binaryArr.slice(i, i + 1024)
-                //     const uint8Arr = new Uint8Array(chars.length)
-
-                //     for(let i = 0; i < chars.length; i++) {
-                //         uint8Arr[i] = chars[i]
-                //     }
-
-                //     arrays.push(uint8Arr)
-                // }
-
-                // const blob = new Blob(binaryArr, { type: item.type })
-
-                // const newItem = {
-                //     ...item,
-                //     buffer: blob
-                // }
-
-                // console.log(newItem)
-
-            })
-
             callback(event.target.result)
         })
     })

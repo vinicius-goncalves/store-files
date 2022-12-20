@@ -112,7 +112,6 @@ window.addEventListener('load', () => {
                     img.setAttributeNode(imgClassAttr)
     
                     li.append(img)
-    
                 }
     
                 if(item.type.includes('video')) {
