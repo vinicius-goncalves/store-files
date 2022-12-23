@@ -2,15 +2,37 @@ import { getAllItems } from './indexedDBUtils.js'
 import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
 import { handleWithMedia } from './media-utils.js'
 
-// const dropdownOptions = document.querySelector('.dropdown-options')
+handleWithMedia(document.querySelector('video'))
+
 const filesWrapper = document.querySelector('.files-wrapper')
 const docEl = document.documentElement
 
-let currentMedia = null
+function defineCurrentMedia () {
+
+    let currentMedia = null
+
+    return {
+        
+        setMediaBuffer: function(buffer) {
+            currentMedia = URL.createObjectURL(buffer)
+            return currentMedia
+        },
+
+        deleteCurrentMedia: function() {
+            if(!currentMedia) {
+                return
+            }
+            URL.revokeObjectURL(currentMedia)
+        }
+    }
+}
+
+const dfnMedia = defineCurrentMedia()
 
 document.querySelector('[data-close="view-wrapper"]').addEventListener('click', (event) => {
+    document.querySelector('video').src = null
     event.target.closest('.view-wrapper').classList.remove('active')
-    event.target.closest('.view-wrapper').classList.add('close')
+    event.target.closest('.view-wrapper').classList.add('close')    
 })
 
 const viewContent = document.querySelector('.view-content')
@@ -43,37 +65,40 @@ function createButtonsByType(divDropdownOptions, item) {
         const viewFileName = document.querySelector('.view-file-name')        
         viewFileName.textContent = `${item.name}`
 
-        console.log()
-        const blob = new Blob([item.buffer], { type: item.type })
-
-        URL.revokeObjectURL(currentMedia)
-        currentMedia = URL.createObjectURL(blob)
+        dfnMedia.deleteCurrentMedia()
+        const ObjectURLFromBuffer = dfnMedia.setMediaBuffer(item.buffer)
 
         if(item.type.indexOf('image') >= 0) {
-
+            
             const img = createElement('img', {
                 class: 'view-file-visualizer',
-                src: currentMedia
+                src: ObjectURLFromBuffer
             })
+
             viewContent.insertAdjacentElement('afterbegin', img)
         }
-
+        
         if(item.type.indexOf('video') >= 0) {
 
-            document.querySelector('.view-file-visualizer-video')?.remove()
+            const video = document.querySelector('video')
+            video.setAttribute('src', ObjectURLFromBuffer)
 
-            const video = createElement('video', {
-                class: 'view-file-visualizer-video'    
+        }
+
+        if(item.type.indexOf('audio') >= 0) {
+
+            const audio = createElement('audio', {
+                class: 'view-file-visualizer-video'
             })
 
             const source = createElement('source', {
                 src: currentMedia
             })
 
-            video.appendChild(source)
-            viewContent.insertAdjacentElement('afterbegin', video)
-            
-            handleWithMedia(video)
+            audio.appendChild(source)
+            viewContent.insertAdjacentElement('afterbegin', audio)
+
+            // handleWithMedia(audio)
 
         }
     })
@@ -87,19 +112,23 @@ window.addEventListener('load', () => {
 
         try {
 
-            const lis = items.map(item => {
+            const lis = items.map((item, index) => {
+
+                const { buffer, id, name, size, type } = item
+
+                const fileFormatType = type.split('/')[1]
             
-                const blob = new Blob([ item.buffer ], { type: item.type })
+                const blob = new Blob([ buffer ], { type: type })
                 
                 const docFrag = document.createDocumentFragment()
     
                 const li = document.createElement('li')
-                li.setAttribute('data-item-id', item.id)
+                li.setAttribute('data-item-id', id)
                 const liClassAttr = document.createAttribute('class')
                 liClassAttr.value = 'file'
                 li.setAttributeNode(liClassAttr)
     
-                if(item.type.includes('image')) {
+                if(type.includes('image')) {
     
                     const img = document.createElement('img')
                     const imgSrcAttr = document.createAttribute('src')
@@ -114,13 +143,13 @@ window.addEventListener('load', () => {
                     li.append(img)
                 }
     
-                if(item.type.includes('video')) {
+                if(type.includes('video')) {
                     
                     const video = document.createElement('video')
                     video.setAttribute('class', 'file-img')
                     
                     const srcVideo = document.createElement('source')
-                    srcVideo.setAttribute('type', item.type)
+                    srcVideo.setAttribute('type', type)
                     srcVideo.setAttribute('src', URL.createObjectURL(blob))
                     
                     video.appendChild(srcVideo)
@@ -135,9 +164,13 @@ window.addEventListener('load', () => {
                 div.setAttributeNode(divClassAttr)
     
                 const h1 = document.createElement('h1')
-                const h1TextNode = document.createTextNode(item.name.length < 16 
-                        ? item.name 
-                        : item.name.slice(0, 5) + '...' + item.name.slice(5, 10) + '.' + item.type.split('/')[1])
+
+                const fileNameWithoutFormatType = name.replace(`.${fileFormatType}`, '')
+
+                const h1TextNode = document.createTextNode(name.length < 16 
+                        ? fileNameWithoutFormatType 
+                        : `${fileNameWithoutFormatType.slice(0, 5)}...${fileNameWithoutFormatType.slice(fileNameWithoutFormatType.length - 10)}.${fileFormatType}`)
+                        
                 const h1ClassAttr = document.createAttribute('class')
                 h1ClassAttr.value = 'file-name'
                 h1.setAttributeNode(h1ClassAttr)
@@ -149,7 +182,7 @@ window.addEventListener('load', () => {
                 pForSize.setAttribute('class', 'file-desc')
     
                 const spanSize = document.createElement('span')
-                const spanTextNode = document.createTextNode(getSize(item.size))
+                const spanTextNode = document.createTextNode(getSize(size))
                 spanSize.appendChild(spanTextNode)
                 spanSize.setAttribute('class', 'file-size')
                 pForSize.appendChild(spanSize)
@@ -160,7 +193,7 @@ window.addEventListener('load', () => {
                 pForType.appendChild(pForTypeTextNode)
     
                 const spanType = document.createElement('span')
-                const spanTypeTextNode = document.createTextNode(item.type)
+                const spanTypeTextNode = document.createTextNode(type)
                 spanType.appendChild(spanTypeTextNode)
                 pForType.appendChild(spanType)
                 
@@ -180,7 +213,7 @@ window.addEventListener('load', () => {
                 const divDropdownOptions = document.createElement('div')
                 divDropdownOptions.setAttribute('class', 'dropdown-options')
                 divDropdownOptions.setAttribute('style', 'display: none;')
-                divDropdownOptions.setAttribute('data-dropdown-id', item.id)
+                divDropdownOptions.setAttribute('data-dropdown-id', id)
     
                 const aDownload = document.createElement('a')
                 const aDownloadTextNode = document.createTextNode('Download')
@@ -189,10 +222,10 @@ window.addEventListener('load', () => {
                 divDropdownOptions.append(aDownload)
     
                 aDownload.addEventListener('click', () => {
-                    downloadByBlob([ item.buffer ], item.type)
+                    downloadByBlob([ buffer ], type)
                 })
                 
-                createButtonsByType(divDropdownOptions, item)
+                createButtonsByType(divDropdownOptions, item, index)
     
                 div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
                 li.append(div)

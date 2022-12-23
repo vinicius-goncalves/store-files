@@ -2,8 +2,8 @@ const timeObj = Object.create(null)
 
 function Interval() {
 
-    this.startInterval = function(callback) {
-        setInterval(callback, 1000)
+    this.startInterval = function(callback, msInterval) {
+        setInterval(callback, msInterval)
     }
 
     this.deleteInterval = function() {
@@ -29,7 +29,7 @@ function renderVolume() {
 
 window.addEventListener('DOMContentLoaded', renderVolume.bind(this))
 
-function formatUnit(unit) {
+export function formatUnit(unit) {
     return unit < 10 ? `0${unit}` : `${unit}`
 }
 
@@ -44,15 +44,15 @@ function updateDOMTime() {
     })
 }
 
-function getTotalTime(video) {
+function getTotalTime(media) {
 
-    if(!(video instanceof HTMLVideoElement)) {
-        throw new Error(`Video (args) must be an instance of HTMLVideoElement, the value ${video} was passed.`)
+    if(!(media instanceof HTMLMediaElement)) {
+        throw new Error(`Media argument must be an instance of HTMLMediaElement, the value ${media} was passed.`)
     }
 
     try {
 
-        const { duration } = video
+        const { duration } = media
 
         const totalHours = Math.floor(duration / 3600)
         const totalMinutes = Math.floor(duration % 3600 / 60)
@@ -84,23 +84,23 @@ function getTotalTime(video) {
     }
 }
 
-function getCurrentTime(video) {
+function getCurrentTime(media, msInterval = 1000) {
 
-    if(!(video instanceof HTMLVideoElement)) {
-        throw new Error(`Video (args) must be an instance of HTMLVideoElement, the value ${video} was passed.`)
+    if(!(media instanceof HTMLMediaElement)) {
+        throw new Error(`Media argument must be an instance of HTMLMediaElement, the value ${media} was passed.`)
     }
 
     const newInterval = new Interval()
 
-    if(video.paused) {
+    if(media.paused) {
         newInterval.deleteInterval()
-        return
     }
-    
+
     function updateRemainDuration() {
+
         try {
 
-            const { duration, currentTime } = video
+            const { duration, currentTime } = media
 
             const currentHours = Math.floor((duration - currentTime) / 3600)
             const currentMinutes = Math.floor((duration - currentTime) / 60 % 60)
@@ -125,43 +125,47 @@ function getCurrentTime(video) {
         }
     }
 
-    newInterval.startInterval(updateRemainDuration.bind(this))
+    newInterval.startInterval(updateRemainDuration.bind(this), msInterval)
 }
 
-function setVideoStatus(video, status) {
+function setMediaStatus(media, status) {
+
+    if(!(media instanceof HTMLMediaElement)) {
+        throw new Error(`Media argument must be an instance of HTMLMediaElement, the value ${media} was passed.`)
+    }
+
     if(status === 'pause') {
-        video.pause()
+        media.pause()
         return { paused: true, currentButton: 'play_arrow' }
     }
 
     if(status === 'play') {
-        video.play()
+        media.play()
         return { paused: false, currentButton: 'pause' }
     }
 
     if(status === 'stop') {
-        video.pause()
-        video.currentTime = 0
+        media.pause()
+        media.currentTime = 0
         return { paused: true, currentButton: 'play_arrow' }
     }
 }
 
-function videoSpeedManager() {
-    
-    let currentSpeed = 1
-
-    function updateSpeed() {
-        currentSpeed = currentSpeed >= 2 ? .25 : currentSpeed + .25
-        return { newSpeed: currentSpeed }
+const mediaSpeedManagerTwo = {
+    currentSpeed: 1,
+    updateSpeed: function() {
+        this.currentSpeed = this.currentSpeed >= 2 ? .25 : this.currentSpeed + .25
+        return { newSpeed: this.currentSpeed }
+    },
+    setSpeed: function(newSpeed) {
+        this.currentSpeed = newSpeed
     }
-
-    return { updateSpeed }
 }
 
-export function handleWithMedia(currentVideo) {
+export function handleWithMedia(currentMedia) {
 
-    if(!(currentVideo instanceof HTMLVideoElement)) {
-        return
+    if(!(currentMedia instanceof HTMLMediaElement)) {
+        throw new Error(`Media argument must be an instance of HTMLMediaElement, the value ${currentMedia} was passed.`)
     }
 
     const pauseButton = document.querySelector('.pause')
@@ -175,66 +179,77 @@ export function handleWithMedia(currentVideo) {
 
         const eventsToUpdateCurrentTime = ['play', 'pause']
         eventsToUpdateCurrentTime.forEach(event => {
-            currentVideo.addEventListener(event, () => {
-                getCurrentTime(currentVideo)
-            })
+            currentMedia.addEventListener(event, getCurrentTime.bind(this, currentMedia, 1000))
         })
 
-        pauseButton.addEventListener('click', () => {
+        const pauseButtonEv = () => {
 
-            const buttonStatus = currentVideo.paused
-                ? setVideoStatus(currentVideo, 'play')
-                : setVideoStatus(currentVideo, 'pause')
+            const buttonStatus = currentMedia.paused
+                ? setMediaStatus(currentMedia, 'play')
+                : setMediaStatus(currentMedia, 'pause')
 
             pauseButton.textContent = buttonStatus.currentButton
 
-        })
+        }
 
-        stopButton.addEventListener('click', () => {
+        const stopButtonEv = () => {
 
-            const buttonStatus = setVideoStatus(currentVideo, 'stop')
+            const buttonStatus = setMediaStatus(currentMedia, 'stop')
             pauseButton.textContent = buttonStatus.currentButton
 
-        })
+        }
 
-        rewindButton.addEventListener('click', () => {
-            if(!(currentVideo.currentTime <= 10)) {
-                currentVideo.currentTime -= 10
+        const rewindButtonEv = () => {
+            if(!(currentMedia.currentTime <= 10)) {
+                currentMedia.currentTime -= 10
                 return   
             }
-        })
+        }
 
-        forwardButton.addEventListener('click', () => {
-            if(!(currentVideo.currentTime >= currentVideo.duration - 10)) {
-                currentVideo.currentTime += 10
+        const forwardButtonEv = () => {
+            if(!(currentMedia.currentTime >= currentMedia.duration - 10)) {
+                currentMedia.currentTime += 10
                 return
             }
-        })
+        }
 
-        const videoSpeed = videoSpeedManager()
-        speedButton.addEventListener('click', () => {
+        const videoSpeed = mediaSpeedManagerTwo
+        const speedButtonEv = () => {
             
             const { newSpeed } = videoSpeed.updateSpeed()
-            currentVideo.playbackRate = newSpeed
+            console.log(newSpeed)
+
+            currentMedia.playbackRate = newSpeed
             speedButton.textContent = `x${newSpeed}`
 
-        })
+        }
 
-        volumeRange.addEventListener('input', () => {
-            const { value } = volumeRange
-            currentVideo.volume = (value / 100)
 
-        })
+        const { value } = volumeRange
+        volumeRange.setAttribute('value', currentMedia.volume * 100)
+
+        const volumeRangeEv = () => {
+            currentMedia.volume = (value / 100)
+        }
+        
+        pauseButton.addEventListener('click', pauseButtonEv.bind(this))
+        stopButton.addEventListener('click', stopButtonEv.bind(this))
+        rewindButton.addEventListener('click', rewindButtonEv.bind(this))
+        forwardButton.addEventListener('click', forwardButtonEv.bind(this))
+        speedButton.addEventListener('click', speedButtonEv.bind(this))
+        volumeRange.addEventListener('input', volumeRangeEv.bind(this))
     }
 
-    currentVideo.addEventListener('loadedmetadata', () => {
-        
-        pauseButton.textContent = currentVideo.paused
+    currentMedia.addEventListener('loadedmetadata', () => {
+
+        pauseButton.textContent = currentMedia.paused
             ? 'play_arrow'
             : 'play'
-    
-        loadEvents()
-        getTotalTime(currentVideo)
-
+            
+            getTotalTime(currentMedia)
+        
     })
+
+    loadEvents()
+
 }
