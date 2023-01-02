@@ -1,4 +1,4 @@
-import { getAllItems } from './indexedDBUtils.js'
+import { getAllItems, getItemByKey } from './indexedDBUtils.js'
 import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
 import { handleWithMedia } from './media-utils.js'
 
@@ -12,7 +12,7 @@ function defineCurrentMedia () {
     let currentMedia = null
 
     return {
-        
+
         setMediaBuffer: function(buffer) {
             currentMedia = URL.createObjectURL(buffer)
             return currentMedia
@@ -97,8 +97,6 @@ function createButtonsByType(divDropdownOptions, item) {
 
             audio.appendChild(source)
             viewContent.insertAdjacentElement('afterbegin', audio)
-
-            // handleWithMedia(audio)
 
         }
     })
@@ -238,13 +236,9 @@ window.addEventListener('load', () => {
             lis.forEach(li => filesWrapper.append(li))
 
         } catch (error) {
-
             console.error(error)
-
         } finally {
-
             document.querySelector(`[data-loader-id="${loader}"]`)?.remove()
-
         }
         
         const dropdowns = document.querySelectorAll('.options')

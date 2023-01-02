@@ -1,3 +1,5 @@
+export { getItemByKey, addItem, putItem, getAllItems }
+
 const DATABASE_NAME = 'files'
 const STORE_VERSION = 1
 const GENERAL_OBJ_STORE_NAME = 'file-obj-store'
@@ -22,46 +24,49 @@ const dbPromise = new Promise(resolve => {
     })
 })
 
-function makeTransaction(objectStore, transactionType = 'readonly') {
-    return dbPromise.then(db => {
-        const transaction = db.transaction(objectStore, transactionType)
-        const store = transaction.objectStore(objectStore)
-        return store
-    })
+async function makeTransaction(objectStore, transactionType = 'readonly') {
+
+    const db = await dbPromise
+    const transaction = db.transaction(objectStore, transactionType)
+    const store = transaction.objectStore(objectStore)
+    return store
 }
 
-export function getItemByKey(keyId, callback) {
-    makeTransaction(GENERAL_OBJ_STORE_NAME, 'readonly').then(store => {
+async function getItemByKey(keyId) {
+
+    const store = await makeTransaction(GENERAL_OBJ_STORE_NAME, 'readonly')
+
+    const itemFound = new Promise(resolve => {
         const query = store.get(keyId)
         query.addEventListener('success', (event) => {
-            callback(event.target.result)
+            resolve(event.target.result)
         })
     })
+
+    return (await itemFound)
 }
 
-export function addItem(itemObj) {
+async function addItem(itemObj) {
     
-    makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite').then(store => {
+    const store = await makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite')
+    const query = store.put(itemObj)
+    
+    query.addEventListener('success', () => {
+        console.log('Added')
+    })
 
-        const query = store.put(itemObj)
-        
-        query.addEventListener('success', () => {
-            console.log('Added')
-        })
-
-        query.addEventListener('error', (event) => {
-            console.log(event)
-        })
+    query.addEventListener('error', (event) => {
+        console.log(event)
     })
 }
 
-export function putItem(itemObj, callback) {
+function putItem(itemObj, callback) {
     getItemByKey(itemObj.id, itemFound => {
         if(itemFound) {
             return callback('Already exists')
         }
 
-        makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite').then(store => {
+            makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite').then(store => {
 
             const newItemObj = {
                 ...itemObj,
@@ -83,7 +88,7 @@ export function putItem(itemObj, callback) {
     })
 }
 
-export function getAllItems(callback) {
+function getAllItems(callback) {
     makeTransaction(GENERAL_OBJ_STORE_NAME).then(store => {
         
         const query = store.getAll()
