@@ -5,7 +5,9 @@ export {
     downloadByBlob, 
     createLoader, 
     createElement,
-    loadScript 
+    loadScript,
+    getHTMLMediaByFormat,
+    manageDOMElementClasses
 }
 
 function randomUUID() {
@@ -75,31 +77,25 @@ function downloadByBlob(blobParts, type, name) {
 function createLoader(insertBefore) {
     
     const div = document.createElement('div')
-    
-    const divClassAttr = document.createAttribute('class')
-    divClassAttr.value = 'loader-wrapper'
-    div.setAttributeNode(divClassAttr)
+    div.setAttribute('class', 'loader-wrapper')
 
-    const divDataAttr = document.createAttribute('data-loader-id')
-    const id = Math.floor(Math.random() * (20 - 1) + 1)
-    divDataAttr.value = id
-    div.setAttributeNode(divDataAttr)
+    const loaderID = Math.floor(Math.random() * (1000 - 1 + 1) + 1)
+
+    div.setAttribute('data-loader-id', loaderID)
 
     const divLoaderContent = document.createElement('div')
-    
-    const divLoaderClassAttr = document.createAttribute('class')
-    divLoaderClassAttr.value = 'loader-content'
-    divLoaderContent.setAttributeNode(divLoaderClassAttr)
+    divLoaderContent.setAttribute('class', 'loader-content')
 
     div.appendChild(divLoaderContent)
+
     insertBefore.insertAdjacentElement('afterbegin', div)
 
     return {
-        id: id,
+        id: loaderID,
         remove: function() {
             
             const loaderSelector = (id) => `[data-loader-id="${id}"]`
-            const loaderFound = document.querySelector(loaderSelector(id))
+            const loaderFound = document.querySelector(loaderSelector(loaderID))
             
             if(!loaderFound) {
                 return {
@@ -108,7 +104,6 @@ function createLoader(insertBefore) {
             }
 
             loaderFound.remove()
-            
         }
     }
 }
@@ -135,4 +130,38 @@ function loadScript(file, isModule = false) {
     }
     
     document.body.insertAdjacentElement('beforeend', script)
+}
+
+function getHTMLMediaByFormat(fileFormat) {
+    
+    const formats = {
+        video: ['mp4', 'avi', 'mov', 'wmv', 'flv', 'mkv', 'webm', 'mpeg', 'asf', 'ogv', '3gp', 'm4v', 'swf'],
+        img: ['jpeg', 'png', 'gif', 'tiff', 'bmp', 'raw'],
+        audio: ['mp3', 'wav', 'aiff', 'flac', 'alac', 'ogg', 'm4a']
+    }
+
+    const [ pair ] = Object
+        .entries(formats)
+        .filter(([_, TagHTMLElement ]) => TagHTMLElement.includes(fileFormat))
+
+    const [ TagHTMLElementFound ] = pair
+    return TagHTMLElementFound 
+
+}
+
+function manageDOMElementClasses(toAdd, toRemove, DOMElement) {
+    
+    if(arguments.length <= 0) {
+        throw new TypeError('You must to insert at least one argument')
+    }
+
+    const args = Array.prototype.slice.call(arguments, 0, 2)
+    const everyIsNotArray = args.every(arg => Array.isArray(arg))
+
+    if(!everyIsNotArray) {
+        throw new Error('The toAdd and toRemove args must be an array')
+    }
+
+    toAdd.forEach(elClass => DOMElement.classList.add(elClass))
+    toRemove.forEach(elClass => DOMElement.classList.remove(elClass))
 }
