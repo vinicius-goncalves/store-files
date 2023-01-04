@@ -247,6 +247,8 @@ async function loadFiles() {
 
     const dropdowns = document.querySelectorAll('.options')
 
+    const coords = new Coords()
+
     function handleWithDropdown(dropdown) {
         
         dropdown.addEventListener('click', (event) => {
@@ -260,21 +262,22 @@ async function loadFiles() {
             const currDropdown = document.querySelector(`[data-dropdown-id="${IDCurrLi}"]`)
             const currDropdownStyle = currDropdown.style
 
-            console.log(currDropdownStyle)
-
             if(currDropdownStyle.getPropertyValue('display') !== 'none') {
                 return
             }
 
             currDropdown.removeAttribute('style')
             currDropdown.setAttribute('data-dropdown-active', '')
-                
-            const { x, y } = new Coords(event.pageX, event.pageY).getCoords()
 
-            currDropdown.style.top = `${x}px`
-            currDropdown.style.left = `${y}px`
+            coords.setCoords(event.pageX, event.pageY)
+                
+            const { x, y } = coords.getCoords()
+
+            currDropdown.style.top = `${y}px`
+            currDropdown.style.left = `${x}px`
 
             const { right } = currDropdown.getBoundingClientRect()
+
             if(right > docEl.clientWidth) {
                 currDropdown.style.left = `${docEl.clientWidth - currDropdown.offsetWidth}px`
             }
@@ -292,9 +295,10 @@ async function loadFiles() {
 
     eventsToRemoveDropdown.forEach(event => {
         window.addEventListener(event, () => {
-            document.querySelectorAll('[data-dropdown-active]').forEach(item => {
-                item.style.setProperty('display', 'none')
-                item.removeAttribute('data-dropdown-active')
+            const activeDropdowns = [...document.querySelectorAll('[data-dropdown-active]')]
+            activeDropdowns.forEach(activeDropdown => {
+                activeDropdown.style.setProperty('display', 'none')
+                activeDropdown.removeAttribute('data-dropdown-active')
             })
         })
     })
