@@ -88,10 +88,6 @@ input[type="range"]:in-range {
 }
 
 .view-content .view-file-visualizer {
-    max-width: 33.33%;
-}
-
-.view-content .view-file-visualizer-video {
     max-width: 50%;
 }
 

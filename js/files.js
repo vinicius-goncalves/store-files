@@ -3,9 +3,9 @@ import { downloadByBlob, createLoader, createElement, getSize, loadScript } from
 import { handleWithMedia } from './media-utils.js'
 import { Coords } from './classes.js'
 
-handleWithMedia(document.querySelector('video'))
-
 const filesWrapper = document.querySelector('.files-wrapper')
+const viewContent = document.querySelector('.view-content')
+
 const docEl = document.documentElement
 
 function defineObjectURL () {
@@ -40,12 +40,9 @@ function defineObjectURL () {
 const dfnObjURL = defineObjectURL()
 
 document.querySelector('[data-close="view-wrapper"]').addEventListener('click', (event) => {
-    document.querySelector('video').src = null
     event.target.closest('.view-wrapper').classList.remove('active')
-    event.target.closest('.view-wrapper').classList.add('close')    
+    event.target.closest('.view-wrapper').classList.add('close')
 })
-
-const viewContent = document.querySelector('.view-content')
 
 const viewFileNameElement = document.createElement('h1')
 viewFileNameElement.setAttribute('class', 'view-file-name')
@@ -53,12 +50,14 @@ viewContent.appendChild(viewFileNameElement)
 
 function createButtonsByType(divDropdownOptions, item) {
 
+    const { name, type, buffer } = item
+
     const aView = document.createElement('a')
     const aViewTextNode = document.createTextNode(`View: `)
     aView.appendChild(aViewTextNode)
 
     const spanView = document.createElement('span')
-    const spanViewTextNode = document.createTextNode(item.type)
+    const spanViewTextNode = document.createTextNode(type)
     spanView.setAttribute('class', 'view-file-type')
     spanView.appendChild(spanViewTextNode)
 
@@ -73,40 +72,45 @@ function createButtonsByType(divDropdownOptions, item) {
         viewWrapper.classList.add('active')
 
         const viewFileName = document.querySelector('.view-file-name')        
-        viewFileName.textContent = `${item.name}`
+        viewFileName.textContent = `${name}`
 
-        dfnObjURL.redefineObjectURL(item.buffer)
+        dfnObjURL.redefineObjectURL(buffer)
 
-        if(item.type.indexOf('image') >= 0) {
+        const [ fileFormat ] = type.split('/')
+
+        const video = viewContent.querySelector('video')
+        const videoStyle = video.style
+
+        const img = viewContent.querySelector('img')
+        const imgStyle = img.style
+
+        const mediaButtons = viewContent.querySelector('.media-buttons')
+        const mediaButtonsStyle = mediaButtons.style
+
+        if(fileFormat === 'image') {
             
-            const img = createElement('img', {
-                class: 'view-file-visualizer',
-                src: dfnObjURL.getURLObject()
-            })
+            const img = viewContent.querySelector('img')
+            img.setAttribute('src', dfnObjURL.getURLObject())
+            
+            imgStyle.setProperty('display', 'block')
 
-            viewContent.insertAdjacentElement('afterbegin', img)
+            mediaButtonsStyle.setProperty('display', 'none')
+
+            if(video.src === null) return
+            if(!video.paused) video.pause()
+            videoStyle.setProperty('display', 'none')
         }
         
-        if(item.type.indexOf('video') >= 0) {
+        if(fileFormat === 'video' || fileFormat === 'audio') {
 
-            const video = document.querySelector('video')
             video.setAttribute('src', dfnObjURL.getURLObject())
+            imgStyle.setProperty('display', 'none')
 
-        }
-
-        if(item.type.indexOf('audio') >= 0) {
-
-            const audio = createElement('audio', {
-                class: 'view-file-visualizer-video'
-            })
-
-            const source = createElement('source', {
-                src: currentMedia
-            })
-
-            audio.appendChild(source)
-            viewContent.insertAdjacentElement('afterbegin', audio)
-
+            if(mediaButtonsStyle.getPropertyValue('display') === 'none') {
+                mediaButtonsStyle.removeProperty('display')
+            }
+            
+            videoStyle.setProperty('display', 'block')
         }
     })
 }
@@ -254,6 +258,12 @@ async function loadFiles() {
         dropdown.addEventListener('click', (event) => {
             event.stopPropagation()
 
+            const allActiveDropdowns = document.querySelectorAll('[data-dropdown-active]')
+                .forEach(dropdown => {
+                    dropdown.style.display = 'none'
+                    dropdown.removeAttribute('data-dropdown-active')
+                })
+
             const targetClicked = event.target
             
             const currLi = targetClicked.closest('li')
@@ -276,10 +286,15 @@ async function loadFiles() {
             currDropdown.style.top = `${y}px`
             currDropdown.style.left = `${x}px`
 
-            const { right } = currDropdown.getBoundingClientRect()
+            const { right, bottom } = currDropdown.getBoundingClientRect()
 
             if(right > docEl.clientWidth) {
                 currDropdown.style.left = `${docEl.clientWidth - currDropdown.offsetWidth}px`
+            }
+
+            if(bottom > docEl.clientHeight) {
+                currDropdownStyle
+                    .setProperty('top', `${docEl.clientHeight - currDropdown.offsetHeight}px`)
             }
         })
     }
@@ -305,8 +320,18 @@ async function loadFiles() {
 }
 
 function callFirstInitialization() {
+
     loadFiles()
     loadScript('../js/features/mouse-swap.js', true)
+    
+    const video = createElement('video', { class: 'view-file-visualizer' })
+    const img = createElement('img', { class: 'view-file-visualizer' })
+
+    viewContent.insertAdjacentElement('afterbegin', video)
+    viewContent.insertAdjacentElement('afterbegin', img)
+
+    handleWithMedia(video)
+    
 }
 
 window.onload = () => callFirstInitialization()

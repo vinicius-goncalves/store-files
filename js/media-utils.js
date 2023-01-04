@@ -103,8 +103,8 @@ function getCurrentTime(media, msInterval = 1000) {
             const { duration, currentTime } = media
 
             const currentHours = Math.floor((duration - currentTime) / 3600)
-            const currentMinutes = Math.floor((duration - currentTime) / 60 % 60)
-            const currentSeconds = Math.floor((duration - currentTime) % 60)
+            const currentMinutes = Math.floor((duration - currentTime) % 3600 / 60)
+            const currentSeconds = Math.floor((duration - currentTime) % 3600 % 60)
 
             const unitsToFormat = currentHours == 0 
                 ? [currentMinutes, currentSeconds]
@@ -217,20 +217,15 @@ export function handleWithMedia(currentMedia) {
         const speedButtonEv = () => {
             
             const { newSpeed } = videoSpeed.updateSpeed()
-            console.log(newSpeed)
-
             currentMedia.playbackRate = newSpeed
             speedButton.textContent = `x${newSpeed}`
 
         }
 
-
         const { value } = volumeRange
         volumeRange.setAttribute('value', currentMedia.volume * 100)
 
-        const volumeRangeEv = () => {
-            currentMedia.volume = (value / 100)
-        }
+        const volumeRangeEv = () => currentMedia.volume = (value / 100)
         
         pauseButton.addEventListener('click', pauseButtonEv.bind(this))
         stopButton.addEventListener('click', stopButtonEv.bind(this))
@@ -238,6 +233,7 @@ export function handleWithMedia(currentMedia) {
         forwardButton.addEventListener('click', forwardButtonEv.bind(this))
         speedButton.addEventListener('click', speedButtonEv.bind(this))
         volumeRange.addEventListener('input', volumeRangeEv.bind(this))
+
     }
 
     currentMedia.addEventListener('loadedmetadata', () => {
