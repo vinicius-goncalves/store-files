@@ -1,6 +1,6 @@
-import { handleWithFile } from './app.js'
-import { randomUUID, CustomFile } from './utils.js'
-import { putItem } from './indexedDBUtils.js'
+import { handleWithFile } from '../app.js'
+import { randomUUID, CustomFile } from '../utils.js'
+import { putItem } from '../indexedDBUtils.js'
 
 const dropFileZone = document.querySelector('.drop-zone-file')
 

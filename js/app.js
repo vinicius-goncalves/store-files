@@ -1,20 +1,20 @@
-import { randomUUID, getSize, CustomFile } from './utils.js'
-import { putItem } from './indexedDBUtils.js'
-
 const docEl = document.documentElement
+
+function loadScript(file, isModule = false) {
+    
+    const script = document.createElement('script')
+    script.setAttribute('src', file)
+    
+    if(isModule) {
+        script.setAttribute('type', 'module')
+    }
+    
+    document.body.insertAdjacentElement('beforeend', script)
+}
 
 window.addEventListener('DOMContentLoaded', () => {
 
-    const script = document.createElement('script')
-    
-    const srcAttr = document.createAttribute('src')
-    srcAttr.value = '../js/drag-drop.js'
-    script.setAttributeNode(srcAttr)
-
-    const typeAttr = document.createAttribute('type')
-    typeAttr.value = 'module'
-    script.setAttributeNode(typeAttr)
-    document.body.insertAdjacentElement('beforeend', script)
+    loadScript('../js/features/drag-drop.js', true)
 
 })
 
