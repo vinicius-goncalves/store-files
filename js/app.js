@@ -1,16 +1,6 @@
-const docEl = document.documentElement
+import { loadScript } from './utils.js'
 
-function loadScript(file, isModule = false) {
-    
-    const script = document.createElement('script')
-    script.setAttribute('src', file)
-    
-    if(isModule) {
-        script.setAttribute('type', 'module')
-    }
-    
-    document.body.insertAdjacentElement('beforeend', script)
-}
+const docEl = document.documentElement
 
 window.addEventListener('DOMContentLoaded', () => {
 

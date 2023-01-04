@@ -1,5 +1,5 @@
 import { getAllItems, getItemByKey } from './indexedDBUtils.js'
-import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
+import { downloadByBlob, createLoader, createElement, getSize, loadScript } from './utils.js'
 import { handleWithMedia } from './media-utils.js'
 import { Coords } from './classes.js'
 
@@ -206,7 +206,8 @@ async function loadFiles() {
             const aDownload = document.createElement('a')
             const aDownloadTextNode = document.createTextNode('Download')
             aDownload.appendChild(aDownloadTextNode)
-            aDownload.onclick = () => downloadByBlob([ buffer ], mimeType)
+
+            aDownload.onclick = () => downloadByBlob([ buffer ], mimeType, name)
 
             divDropdownOptions.append(aDownload)
 
@@ -259,7 +260,9 @@ async function loadFiles() {
             const currDropdown = document.querySelector(`[data-dropdown-id="${IDCurrLi}"]`)
             const currDropdownStyle = currDropdown.style
 
-            if(currDropdownStyle.getProperty('display') !== 'none') {
+            console.log(currDropdownStyle)
+
+            if(currDropdownStyle.getPropertyValue('display') !== 'none') {
                 return
             }
 
@@ -297,46 +300,9 @@ async function loadFiles() {
     })
 }
 
-window.addEventListener('load', () => {
-
+function callFirstInitialization() {
     loadFiles()
-})
+    loadScript('../js/features/mouse-swap.js', true)
+}
 
-let isScrolling = false
-let prevScrollTop = null
-
-const coords = new Coords()
-
-filesWrapper.addEventListener('mousedown', (event) => {
-    event.preventDefault()
-
-    if(!isScrolling) {
-        prevScrollTop = filesWrapper.scrollTop
-        coords.setY(event.pageY)
-        isScrolling = true
-    }
-})
-
-filesWrapper.addEventListener('mousemove', (event) => {
-    event.preventDefault()
-
-    if(!isScrolling) {
-        return
-    }
-
-    const { y } = coords.getCoords()
-    filesWrapper.scrollTop = prevScrollTop - (event.pageY - y)
-
-})
-
-filesWrapper.addEventListener('mouseup', () => {
-    if(isScrolling) {
-        isScrolling = false
-    }
-})
-
-filesWrapper.addEventListener('mouseleave', () => {
-    if(isScrolling) {
-        isScrolling = false
-    }
-})
+window.onload = () => callFirstInitialization()

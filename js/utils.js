@@ -4,7 +4,9 @@ export {
     CustomFile, 
     downloadByBlob, 
     createLoader, 
-    createElement, }
+    createElement,
+    loadScript 
+}
 
 function randomUUID() {
     let dateTime = Date.now()
@@ -53,21 +55,20 @@ function downloadByBlob(blobParts, type, name) {
     try {
 
         const blob = new Blob(blobParts, { type })
-        const a = document.createElement('a')
 
-        a.href = URL.createObjectURL(blob)
-        a.download = `file-${name || new Intl.DateTimeFormat(navigator.language, {
+        const fileName = `file-${name || new Intl.DateTimeFormat(navigator.language, {
             hour: '2-digit',
             minute: '2-digit'
         }).format(Date.now())}`
-        
+
+        const a = document.createElement('a')
+        a.setAttribute('href', URL.createObjectURL(blob))
+        a.setAttribute('download', fileName)
         a.click()
         a.remove()
 
     } catch (error) {
-
         console.error(error)
-
     }
 }
 
@@ -122,4 +123,16 @@ function createElement(element, attributesObj) {
 
     return el
 
+}
+
+function loadScript(file, isModule = false) {
+    
+    const script = document.createElement('script')
+    script.setAttribute('src', file)
+    
+    if(isModule) {
+        script.setAttribute('type', 'module')
+    }
+    
+    document.body.insertAdjacentElement('beforeend', script)
 }
