@@ -198,7 +198,8 @@ main .files-wrapper::-webkit-scrollbar-thumb {
     background-color: #4744e4;
 }
 
-.file-img {
+.img-file,
+.video-file {
     width: 33.33%;
     margin: 10px;
     border-radius: 10px;

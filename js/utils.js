@@ -93,8 +93,23 @@ function createLoader(insertBefore) {
     div.appendChild(divLoaderContent)
     insertBefore.insertAdjacentElement('afterbegin', div)
 
-    return id
+    return {
+        id: id,
+        remove: function() {
+            
+            const loaderSelector = (id) => `[data-loader-id="${id}"]`
+            const loaderFound = document.querySelector(loaderSelector(id))
+            
+            if(!loaderFound) {
+                return {
+                    hasLoaderFound: false
+                }
+            }
 
+            loaderFound.remove()
+            
+        }
+    }
 }
 
 function createElement(element, attributesObj) {

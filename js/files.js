@@ -1,33 +1,43 @@
 import { getAllItems, getItemByKey } from './indexedDBUtils.js'
 import { downloadByBlob, createLoader, createElement, getSize } from './utils.js'
 import { handleWithMedia } from './media-utils.js'
+import { Coords } from './classes.js'
 
 handleWithMedia(document.querySelector('video'))
 
 const filesWrapper = document.querySelector('.files-wrapper')
 const docEl = document.documentElement
 
-function defineCurrentMedia () {
+function defineObjectURL () {
 
     let currentMedia = null
 
     return {
 
-        setMediaBuffer: function(buffer) {
-            currentMedia = URL.createObjectURL(buffer)
+        setObjectURL: function(itemBuffer) {
+            currentMedia = URL.createObjectURL(itemBuffer)
             return currentMedia
         },
 
-        deleteCurrentMedia: function() {
+        deleteObjectURL: function() {
             if(!currentMedia) {
                 return
             }
             URL.revokeObjectURL(currentMedia)
+        },
+
+        redefineObjectURL: function(itemBuffer) {
+            this.deleteObjectURL(itemBuffer)
+            return this.setObjectURL(itemBuffer)
+        },
+
+        getURLObject: function() {
+            return currentMedia
         }
     }
 }
 
-const dfnMedia = defineCurrentMedia()
+const dfnObjURL = defineObjectURL()
 
 document.querySelector('[data-close="view-wrapper"]').addEventListener('click', (event) => {
     document.querySelector('video').src = null
@@ -65,14 +75,13 @@ function createButtonsByType(divDropdownOptions, item) {
         const viewFileName = document.querySelector('.view-file-name')        
         viewFileName.textContent = `${item.name}`
 
-        dfnMedia.deleteCurrentMedia()
-        const ObjectURLFromBuffer = dfnMedia.setMediaBuffer(item.buffer)
+        dfnObjURL.redefineObjectURL(item.buffer)
 
         if(item.type.indexOf('image') >= 0) {
             
             const img = createElement('img', {
                 class: 'view-file-visualizer',
-                src: ObjectURLFromBuffer
+                src: dfnObjURL.getURLObject()
             })
 
             viewContent.insertAdjacentElement('afterbegin', img)
@@ -81,7 +90,7 @@ function createButtonsByType(divDropdownOptions, item) {
         if(item.type.indexOf('video') >= 0) {
 
             const video = document.querySelector('video')
-            video.setAttribute('src', ObjectURLFromBuffer)
+            video.setAttribute('src', dfnObjURL.getURLObject())
 
         }
 
@@ -102,256 +111,222 @@ function createButtonsByType(divDropdownOptions, item) {
     })
 }
 
-window.addEventListener('load', () => {
+async function loadFiles() {
 
-    const loader = createLoader(document.body)
-    
-    getAllItems(items => {
+    const loaderOptions = createLoader(document.body)
 
+    function handleWithFile(file) {
+        
         try {
 
-            const lis = items.map((item, index) => {
+            const { buffer, id, name, size, ['type']: mimeType } = file
 
-                const { buffer, id, name, size, type } = item
+            const [ fileType ] = mimeType.split('/')
 
-                const fileFormatType = type.split('/')[1]
-            
-                const blob = new Blob([ buffer ], { type: type })
-                
-                const docFrag = document.createDocumentFragment()
-    
-                const li = document.createElement('li')
-                li.setAttribute('data-item-id', id)
-                const liClassAttr = document.createAttribute('class')
-                liClassAttr.value = 'file'
-                li.setAttributeNode(liClassAttr)
-    
-                if(type.includes('image')) {
-    
-                    const img = document.createElement('img')
-                    const imgSrcAttr = document.createAttribute('src')
-                    imgSrcAttr.value = URL.createObjectURL(blob)
-                    
-                    const imgClassAttr = document.createAttribute('class')
-                    imgClassAttr.value = 'file-img'
-                    
-                    img.setAttributeNode(imgSrcAttr)
-                    img.setAttributeNode(imgClassAttr)
-    
-                    li.append(img)
-                }
-    
-                if(type.includes('video')) {
-                    
-                    const video = document.createElement('video')
-                    video.setAttribute('class', 'file-img')
-                    
-                    const srcVideo = document.createElement('source')
-                    srcVideo.setAttribute('type', type)
-                    srcVideo.setAttribute('src', URL.createObjectURL(blob))
-                    
-                    video.appendChild(srcVideo)
-    
-                    li.append(video)
-                
-                }
-                
-                const div = document.createElement('div')
-                const divClassAttr = document.createAttribute('class')
-                divClassAttr.value = 'file-details'
-                div.setAttributeNode(divClassAttr)
-    
-                const h1 = document.createElement('h1')
-
-                const fileNameWithoutFormatType = name.replace(`.${fileFormatType}`, '')
-
-                const h1TextNode = document.createTextNode(name.length < 16 
-                        ? fileNameWithoutFormatType 
-                        : `${fileNameWithoutFormatType.slice(0, 5)}...${fileNameWithoutFormatType.slice(fileNameWithoutFormatType.length - 10)}.${fileFormatType}`)
-                        
-                const h1ClassAttr = document.createAttribute('class')
-                h1ClassAttr.value = 'file-name'
-                h1.setAttributeNode(h1ClassAttr)
-                h1.appendChild(h1TextNode)
-    
-                const pForSize = document.createElement('p')
-                const pForSizeTextNode = document.createTextNode('Size: ')
-                pForSize.appendChild(pForSizeTextNode)
-                pForSize.setAttribute('class', 'file-desc')
-    
-                const spanSize = document.createElement('span')
-                const spanTextNode = document.createTextNode(getSize(size))
-                spanSize.appendChild(spanTextNode)
-                spanSize.setAttribute('class', 'file-size')
-                pForSize.appendChild(spanSize)
-    
-                const pForType = document.createElement('p')
-                const pForTypeTextNode = document.createTextNode('Type: ')
-                pForType.setAttribute('class', 'file-desc')
-                pForType.appendChild(pForTypeTextNode)
-    
-                const spanType = document.createElement('span')
-                const spanTypeTextNode = document.createTextNode(type)
-                spanType.appendChild(spanTypeTextNode)
-                pForType.appendChild(spanType)
-                
-                const iExpandMore = document.createElement('i')
-                const iExpandMoreTextNode = document.createTextNode('expand_more')
-                iExpandMore.setAttribute('class', 'material-icons')
-                iExpandMore.appendChild(iExpandMoreTextNode)
-                
-                const buttonSpan = document.createElement('span')
-                const buttonSpanTextNode = document.createTextNode('Options')
-                buttonSpan.appendChild(buttonSpanTextNode)
-                
-                const buttons = document.createElement('button')
-                buttons.setAttribute('class', 'options')
-                buttons.append(buttonSpan, iExpandMore)
-    
-                const divDropdownOptions = document.createElement('div')
-                divDropdownOptions.setAttribute('class', 'dropdown-options')
-                divDropdownOptions.setAttribute('style', 'display: none;')
-                divDropdownOptions.setAttribute('data-dropdown-id', id)
-    
-                const aDownload = document.createElement('a')
-                const aDownloadTextNode = document.createTextNode('Download')
-                aDownload.appendChild(aDownloadTextNode)
-    
-                divDropdownOptions.append(aDownload)
-    
-                aDownload.addEventListener('click', () => {
-                    downloadByBlob([ buffer ], type)
-                })
-                
-                createButtonsByType(divDropdownOptions, item, index)
-    
-                div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
-                li.append(div)
-                docFrag.appendChild(li)
-                
-                return docFrag
-    
-            })
-            
-            lis.forEach(li => filesWrapper.append(li))
-
-        } catch (error) {
-            console.error(error)
-        } finally {
-            document.querySelector(`[data-loader-id="${loader}"]`)?.remove()
-        }
+            const blob = new Blob([ buffer ], { mimeType })
         
-        const dropdowns = document.querySelectorAll('.options')
+            const li = document.createElement('li')
+            li.setAttribute('data-item-id', id)
+            li.setAttribute('class', 'file')
 
-        dropdowns.forEach(dropdown => {
-            dropdown.addEventListener('click', (event) => {
+            function createElementByType(type, elClass) {
+                const el = document.createElement(type)
+                el.setAttribute('src', URL.createObjectURL(blob))
+                el.setAttribute('class', elClass)
+                return el
+            }
+            
+            switch(fileType) {
+                case 'image':
+                    const img = createElementByType('img', 'img-file')
+                    li.append(img)
+                    break
 
-                Array.from(filesWrapper.children).forEach(item => {
-                    const dropdown = item.querySelector('.dropdown-options')
-                    if(dropdown) {
-                        dropdown.style.setProperty('display', 'none')
-                    }
-                })
-                
-                event.stopPropagation()
+                case 'video':
+                    const video = createElementByType('video', 'video-file')
+                    li.append(video)
+                    break
 
-                const dropdownFound = document.querySelector(`[data-dropdown-id="${event.target.closest('li').dataset.itemId}"]`)
+                default:
+                    break
+            }
+            
+            const div = document.createElement('div')
+            div.setAttribute('class', 'file-details')
 
-                if(dropdownFound.style.display === 'none') {
+            const h1 = document.createElement('h1')
+            h1.setAttribute('class', 'file-name')
 
-                    dropdownFound.removeAttribute('style')
-                    dropdownFound.setAttribute('data-dropdown-active', event.target.closest('li').dataset.itemId)
-                    
-                    const coordX = event.pageX
-                    const coordY = event.pageY
+            const textNode = name.length < 16 
+                ? name 
+                : `${name.slice(0, 10)}...${name.slice(name.length - 10)}`
+
+            const h1TextNode = document.createTextNode(textNode)
+            h1.appendChild(h1TextNode)
+
+            const pForSize = document.createElement('p')
+            const pForSizeTextNode = document.createTextNode('Size: ')
+            pForSize.appendChild(pForSizeTextNode)
+            pForSize.setAttribute('class', 'file-desc')
+
+            const spanSize = document.createElement('span')
+            const spanTextNode = document.createTextNode(getSize(size))
+            spanSize.appendChild(spanTextNode)
+            spanSize.setAttribute('class', 'file-size')
+            pForSize.appendChild(spanSize)
+
+            const pForType = document.createElement('p')
+            const pForTypeTextNode = document.createTextNode('Type: ')
+            pForType.setAttribute('class', 'file-desc')
+            pForType.appendChild(pForTypeTextNode)
+
+            const spanType = document.createElement('span')
+            const spanTypeTextNode = document.createTextNode(mimeType)
+            spanType.appendChild(spanTypeTextNode)
+            pForType.appendChild(spanType)
+            
+            const iExpandMore = document.createElement('i')
+            const iExpandMoreTextNode = document.createTextNode('expand_more')
+            iExpandMore.setAttribute('class', 'material-icons')
+            iExpandMore.appendChild(iExpandMoreTextNode)
+            
+            const buttonSpan = document.createElement('span')
+            const buttonSpanTextNode = document.createTextNode('Options')
+            buttonSpan.appendChild(buttonSpanTextNode)
+            
+            const buttons = document.createElement('button')
+            buttons.setAttribute('class', 'options')
+            buttons.append(buttonSpan, iExpandMore)
+
+            const divDropdownOptions = document.createElement('div')
+            divDropdownOptions.setAttribute('class', 'dropdown-options')
+            divDropdownOptions.setAttribute('style', 'display: none;')
+            divDropdownOptions.setAttribute('data-dropdown-id', id)
+
+            const aDownload = document.createElement('a')
+            const aDownloadTextNode = document.createTextNode('Download')
+            aDownload.appendChild(aDownloadTextNode)
+            aDownload.onclick = () => downloadByBlob([ buffer ], mimeType)
+
+            divDropdownOptions.append(aDownload)
+
+            createButtonsByType(divDropdownOptions, file)
+
+            div.append(h1, pForSize, pForType, buttons, divDropdownOptions)
+            li.append(div)
+
+            return li
+
+        } catch (err) {
+            console.log(err)
+        }
+    }
     
-                    dropdownFound.style.top = `${coordY}px`
-                    dropdownFound.style.left = `${coordX}px`
-
-                    const rect = dropdownFound.getBoundingClientRect()
-                    if(rect.right > docEl.clientWidth) {
-                        dropdownFound.style.left = `${docEl.clientWidth - dropdownFound.offsetWidth}px`
-                    }
-
-                    return
-                }
-                
-                dropdownFound.style.display = 'none'
-                
-            })
+    const filesDocumentFragment = await (new Promise(async (resolve) => {
+        
+        const filesStored = await getAllItems()
+        const lisDocumentFragment = document.createDocumentFragment()
+        
+        const DOMLis = filesStored.map(file => {
+            return handleWithFile(file, lisDocumentFragment)
         })
 
-        dropdowns.forEach(dropdown => {
-                dropdown.addEventListener('click', (event) => {
-    
-                    Array.from(filesWrapper.children).forEach(item => {
-                        const dropdown = item.querySelector('.dropdown-options')
-                        if(dropdown) {
-                            dropdown.style.setProperty('display', 'none')
-                        }
-                    })
-                    
-                    event.stopPropagation()
-    
-                    const dropdownFound = document.querySelector(`[data-dropdown-id="${event.target.closest('li').dataset.itemId}"]`)
-    
-                    if(dropdownFound.style.display === 'none') {
-    
-                        dropdownFound.removeAttribute('style')
-                        dropdownFound.setAttribute('data-dropdown-active', event.target.closest('li').dataset.itemId)
-                        
-                        const coordX = event.pageX
-                        const coordY = event.pageY
+        const lisFulfilled = await Promise.allSettled(DOMLis)
+        lisFulfilled.forEach(({ ['value']: li }) => lisDocumentFragment.appendChild(li))
+
+        const resolveObj = { hasPromiseFinished: true, lis: lisDocumentFragment }
+        resolve(resolveObj)
+
+    }))
+
+    if(filesDocumentFragment.hasPromiseFinished) {
+        loaderOptions.remove()
+        filesWrapper.appendChild(filesDocumentFragment.lis)
+    }
+
+    const dropdowns = document.querySelectorAll('.options')
+
+    function handleWithDropdown(dropdown) {
         
-                        dropdownFound.style.top = `${coordY}px`
-                        dropdownFound.style.left = `${coordX}px`
-    
-                        const rect = dropdownFound.getBoundingClientRect()
-                        if(rect.right > docEl.clientWidth) {
-                            dropdownFound.style.left = `${docEl.clientWidth - dropdownFound.offsetWidth}px`
-                        }
-    
-                        return
-                    }
-                    
-                    dropdownFound.style.display = 'none'
-                    
-                })
-            })
+        dropdown.addEventListener('click', (event) => {
+            event.stopPropagation()
 
-        const eventsToRemoveDropdown = [
-            'click',
-            'resize'
-        ]
+            const targetClicked = event.target
+            
+            const currLi = targetClicked.closest('li')
+            const IDCurrLi = currLi.dataset.itemId
 
-        eventsToRemoveDropdown.forEach(event => {
-            window.addEventListener(event, () => {
-                document.querySelectorAll('[data-dropdown-active]').forEach(item => {
-                    item.style.setProperty('display', 'none')
-                })
+            const currDropdown = document.querySelector(`[data-dropdown-id="${IDCurrLi}"]`)
+            const currDropdownStyle = currDropdown.style
+
+            if(currDropdownStyle.getProperty('display') !== 'none') {
+                return
+            }
+
+            currDropdown.removeAttribute('style')
+            currDropdown.setAttribute('data-dropdown-active', '')
+                
+            const { x, y } = new Coords(event.pageX, event.pageY).getCoords()
+
+            currDropdown.style.top = `${x}px`
+            currDropdown.style.left = `${y}px`
+
+            const { right } = currDropdown.getBoundingClientRect()
+            if(right > docEl.clientWidth) {
+                currDropdown.style.left = `${docEl.clientWidth - currDropdown.offsetWidth}px`
+            }
+        })
+    }
+
+    dropdowns.forEach(dropdown => {
+        handleWithDropdown(dropdown)
+    })
+
+    const eventsToRemoveDropdown = [
+        'click',
+        'resize'
+    ]
+
+    eventsToRemoveDropdown.forEach(event => {
+        window.addEventListener(event, () => {
+            document.querySelectorAll('[data-dropdown-active]').forEach(item => {
+                item.style.setProperty('display', 'none')
+                item.removeAttribute('data-dropdown-active')
             })
         })
     })
+}
+
+window.addEventListener('load', () => {
+
+    loadFiles()
 })
 
 let isScrolling = false
-let coordY = 0
-let prevScrollTop = 0
+let prevScrollTop = null
+
+const coords = new Coords()
 
 filesWrapper.addEventListener('mousedown', (event) => {
     event.preventDefault()
+
     if(!isScrolling) {
         prevScrollTop = filesWrapper.scrollTop
-        coordY = event.clientY
+        coords.setY(event.pageY)
         isScrolling = true
     }
 })
 
 filesWrapper.addEventListener('mousemove', (event) => {
     event.preventDefault()
-    if(isScrolling) {
-        filesWrapper.scrollTop = prevScrollTop - (event.clientY - coordY)
+
+    if(!isScrolling) {
+        return
     }
+
+    const { y } = coords.getCoords()
+    filesWrapper.scrollTop = prevScrollTop - (event.pageY - y)
+
 })
 
 filesWrapper.addEventListener('mouseup', () => {

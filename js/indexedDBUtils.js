@@ -50,13 +50,22 @@ async function addItem(itemObj) {
     
     const store = await makeTransaction(GENERAL_OBJ_STORE_NAME, 'readwrite')
     const query = store.put(itemObj)
+
+    const queryResult = {
+        added: null,
+        queryTimestamp: Date.now()
+    }
     
     query.addEventListener('success', () => {
-        console.log('Added')
+
+        Object.defineProperty(queryResult, 'added', { value: true, writable: true })
+        console.log(queryResult)
+    
     })
 
-    query.addEventListener('error', (event) => {
-        console.log(event)
+    query.addEventListener('error', () => {
+        Object.defineProperty(queryResult, 'added', { value: false, writable: true })
+        console.log(queryResult)
     })
 }
 
@@ -88,13 +97,17 @@ function putItem(itemObj, callback) {
     })
 }
 
-function getAllItems(callback) {
-    makeTransaction(GENERAL_OBJ_STORE_NAME).then(store => {
-        
-        const query = store.getAll()
+async function getAllItems() {
 
-        query.addEventListener('success', (event) => {
-            callback(event.target.result)
+    const store = await makeTransaction(GENERAL_OBJ_STORE_NAME)
+    const query = store.getAll()
+
+    const allItems = new Promise(resolve => {
+        query.addEventListener('success', ({ target }) => {
+            resolve(target.result)
         })
     })
+
+    return allItems
+
 }
